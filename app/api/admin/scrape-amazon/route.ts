@@ -63,7 +63,6 @@ function extractAsin(url: string): string | null {
 }
 
 // Recommend standard creator category based on title keywords
-// Options must exactly match: 'Camera' | 'Camera Tripod' | 'Microphone' | 'Lighting' | 'Storage' | 'Accessories'
 function detectCategory(title: string): string {
   const t = title.toLowerCase()
   if (
@@ -139,6 +138,31 @@ function isBotBlockTitle(titleText: string): boolean {
   )
 }
 
+// Recursively unwrap short redirect links (link.amazon, amzlinks.in, amzn.to)
+async function resolveFinalAmazonUrl(url: string, depth = 0): Promise<string> {
+  if (depth > 5) return url
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': getRandomUserAgent(),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-IN,en;q=0.9',
+      },
+      redirect: 'manual',
+    })
+
+    const loc = res.headers.get('location')
+    if (loc && [301, 302, 303, 307, 308].includes(res.status)) {
+      const nextUrl = loc.startsWith('http') ? loc : new URL(loc, url).toString()
+      return resolveFinalAmazonUrl(nextUrl, depth + 1)
+    }
+    return url
+  } catch {
+    return url
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { url } = await request.json()
@@ -162,12 +186,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let finalUrl = trimmedUrl
-    let body = ''
+    // 1. Resolve shortened links (e.g. link.amazon -> amzlinks.in -> full amazon product url)
+    const resolvedUrl = await resolveFinalAmazonUrl(trimmedUrl)
+    let asin = extractAsin(resolvedUrl) || extractAsin(trimmedUrl)
+    const fallbackTitleFromSlug = extractTitleFromUrlSlug(resolvedUrl) || extractTitleFromUrlSlug(trimmedUrl)
 
-    // Fetch via standard fetch with full browser redirect handling
+    // 2. Build target URL: Always prioritize clean /dp/{ASIN} to avoid tracking token CAPTCHA triggers
+    const targetFetchUrl = asin ? `https://www.amazon.in/dp/${asin}` : resolvedUrl
+
+    let body = ''
     try {
-      const response = await fetch(trimmedUrl, {
+      const response = await fetch(targetFetchUrl, {
         headers: {
           'User-Agent': getRandomUserAgent(),
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -177,16 +206,12 @@ export async function POST(request: NextRequest) {
         },
         redirect: 'follow',
       })
-      finalUrl = response.url || trimmedUrl
       body = await response.text()
     } catch (err: any) {
       console.warn('Scraper fetch error:', err.message)
     }
 
-    const asin = extractAsin(finalUrl) || extractAsin(trimmedUrl)
-    const fallbackTitleFromSlug = extractTitleFromUrlSlug(finalUrl) || extractTitleFromUrlSlug(trimmedUrl)
-
-    // 1. Extract Product Title
+    // 3. Extract Product Title
     let title = ''
     const h1TitleMatch = body.match(/<span\s+id=["']productTitle["'][^>]*>([^<]+)<\/span>/i)
     if (h1TitleMatch && h1TitleMatch[1]) {
@@ -206,23 +231,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback if blocked
     if (!title && fallbackTitleFromSlug) {
       title = fallbackTitleFromSlug
     }
 
-    // 2. Extract High-Res Product Image
+    // 4. Extract High-Res Product Image
     let imageUrl = ''
 
-    // Pattern A: landingImage with data-old-hires
-    const landingHiRes =
-      body.match(/id=["']landingImage["'][^>]*data-old-hires=["']([^"']+)["']/i) ||
-      body.match(/data-old-hires=["']([^"']+)["'][^>]*id=["']landingImage["']/i)
-    if (landingHiRes && landingHiRes[1] && !landingHiRes[1].includes('grey-pixel')) {
-      imageUrl = landingHiRes[1]
+    // Pattern A: "hiRes":"https://m.media-amazon.com/images/I/..."
+    const hiResMatch = body.match(/"hiRes"\s*:\s*"(https:\/\/m\.media-amazon\.com\/images\/I\/[^"]+)"/i)
+    if (hiResMatch && hiResMatch[1]) {
+      imageUrl = hiResMatch[1]
     }
 
-    // Pattern B: landingImage regular src
+    // Pattern B: landingImage with data-old-hires
+    if (!imageUrl) {
+      const landingHiRes =
+        body.match(/id=["']landingImage["'][^>]*data-old-hires=["']([^"']+)["']/i) ||
+        body.match(/data-old-hires=["']([^"']+)["'][^>]*id=["']landingImage["']/i)
+      if (landingHiRes && landingHiRes[1] && !landingHiRes[1].includes('grey-pixel')) {
+        imageUrl = landingHiRes[1]
+      }
+    }
+
+    // Pattern C: landingImage regular src
     if (!imageUrl) {
       const landingSrc = body.match(/id=["']landingImage["'][^>]*src=["']([^"']+)["']/i)
       if (landingSrc && landingSrc[1] && !landingSrc[1].includes('grey-pixel')) {
@@ -230,28 +262,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Pattern C: dynamic colorImages JSON array
+    // Pattern D: "large":"https://m.media-amazon.com/images/I/..."
     if (!imageUrl) {
-      const colorImages = body.match(/'colorImages':\s*\{\s*'initial':\s*(\[[\s\S]+?\])\}/)
-      if (colorImages && colorImages[1]) {
+      const largeMatch = body.match(/"large"\s*:\s*"(https:\/\/m\.media-amazon\.com\/images\/I\/[^"]+)"/i)
+      if (largeMatch && largeMatch[1]) {
+        imageUrl = largeMatch[1]
+      }
+    }
+
+    // Pattern E: Dynamic data-a-dynamic-image JSON
+    if (!imageUrl) {
+      const dynImg = body.match(/data-a-dynamic-image=["'](\{.+?\})["']/)
+      if (dynImg && dynImg[1]) {
         try {
-          const parsed = JSON.parse(colorImages[1])
-          if (parsed[0] && (parsed[0].hiRes || parsed[0].large)) {
-            imageUrl = parsed[0].hiRes || parsed[0].large
+          const unescaped = dynImg[1].replace(/&quot;/g, '"')
+          const parsed = JSON.parse(unescaped)
+          const keys = Object.keys(parsed)
+          if (keys.length > 0) {
+            imageUrl = keys[0]
           }
         } catch {}
       }
     }
 
-    // Pattern D: main-image or imgTagWrapper
-    if (!imageUrl) {
-      const imgTagMatch = body.match(/id=["']imgTagWrapperId["'][\s\S]*?<img[^>]+src=["']([^"']+)["']/i)
-      if (imgTagMatch && imgTagMatch[1] && !imgTagMatch[1].includes('grey-pixel')) {
-        imageUrl = imgTagMatch[1]
-      }
-    }
-
-    // Pattern E: OpenGraph image
+    // Pattern F: OpenGraph image
     if (!imageUrl) {
       const ogImg =
         body.match(/property=["']og:image["']\s+content=["']([^"']+)["']/i) ||
@@ -261,11 +295,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Pattern F: Any high-res media-amazon product image in the HTML
+    // Pattern G: Any high-res media-amazon product image in the HTML
     if (!imageUrl) {
       const allMedia = body.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+_%-]+\.(?:jpg|png)/gi)
       if (allMedia && allMedia.length > 0) {
-        // Exclude tiny icons / rating stars
         const valid = allMedia.filter(u => !u.includes('icon') && !u.includes('badge') && !u.includes('logo'))
         if (valid.length > 0) {
           imageUrl = valid[0]
@@ -273,7 +306,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. Extract Price
+    // 5. Extract Price
     let price: number | null = null
 
     // Match A: corePriceDisplay or a-price-whole
@@ -307,7 +340,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Auto-generate suggested slug
+    // Suggested Slug
     const suggestedSlug = title
       ? title
           .toLowerCase()
@@ -329,7 +362,7 @@ export async function POST(request: NextRequest) {
         slug: suggestedSlug,
         category: suggestedCategory,
         asin,
-        final_url: finalUrl,
+        final_url: resolvedUrl,
       },
     })
   } catch (error: any) {
