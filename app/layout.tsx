@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import FirstSelfieLogo from '@/components/Logo'
 import Link from 'next/link'
 
-const poppins = Poppins({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
-  variable: '--font-poppins',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sans',
   display: 'swap',
 })
 
@@ -44,30 +44,25 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={poppins.variable}>
-      <body className="bg-[#0A0A0A] text-white antialiased selection:bg-[#FF6B00] selection:text-black">
-        {/* Fixed dot grid background */}
-        <div className="fixed inset-0 pointer-events-none bg-dot-grid z-0 opacity-50" />
-
-        {/* Ambient Top Glow */}
-        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[250px] bg-[#FF6B00]/10 blur-[130px] pointer-events-none z-0" />
+    <html lang="en" className={jakarta.variable}>
+      <body className="bg-[#0A0A0B] font-sans text-zinc-100 antialiased selection:bg-[#FF6B00] selection:text-black">
+        {/* Subtle Ambient Radial Lighting */}
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[850px] h-[320px] bg-gradient-to-b from-[#FF6B00]/8 to-transparent blur-[140px] pointer-events-none z-0" />
 
         <div className="relative z-10 flex min-h-screen flex-col justify-between">
-          {/* Main Navigation Bar */}
-          <header className="sticky top-0 z-50 border-b border-[#1F1F1F] bg-[#0A0A0A]/80 backdrop-blur-md">
+          {/* Minimalist Top Studio Bar */}
+          <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0A0A0B]/85 backdrop-blur-xl transition-colors">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5">
               <FirstSelfieLogo size="md" />
 
-              <div className="flex items-center gap-4 sm:gap-6">
-                <Link
-                  href="/"
-                  className="text-xs sm:text-sm font-medium text-zinc-300 hover:text-[#FF6B00] transition"
-                >
-                  Storefront
-                </Link>
+              <div className="flex items-center gap-5">
+                <div className="hidden sm:flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-zinc-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] animate-pulse" />
+                  <span>Creator Gear Edition</span>
+                </div>
                 <Link
                   href="/disclosure"
-                  className="text-xs sm:text-sm font-medium text-zinc-400 hover:text-white transition"
+                  className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
                 >
                   Disclosure
                 </Link>
