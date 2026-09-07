@@ -10,16 +10,38 @@ interface ProductFiltersProps {
 }
 
 export default function ProductFilters({ initialProducts }: ProductFiltersProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts)
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
 
+  // Client-side fallback: If Vercel prerendered the static page with empty products due to missing build-time env vars,
+  // fetch active products client-side immediately.
+  React.useEffect(() => {
+    if (products.length === 0) {
+      import('@/lib/supabase/client').then(({ createClient }) => {
+        const supabase = createClient()
+        supabase
+          .from('products')
+          .select('*')
+          .eq('active', true)
+          .order('featured', { ascending: false })
+          .order('created_at', { ascending: false })
+          .then(({ data, error }) => {
+            if (!error && data && data.length > 0) {
+              setProducts(data)
+            }
+          })
+      })
+    }
+  }, [products.length])
+
   const categories = useMemo(() => {
-    const set = new Set(initialProducts.map(p => p.category).filter(Boolean))
+    const set = new Set(products.map(p => p.category).filter(Boolean))
     return ['All', ...Array.from(set)]
-  }, [initialProducts])
+  }, [products])
 
   const filteredProducts = useMemo(() => {
-    return initialProducts.filter(product => {
+    return products.filter(product => {
       const matchesCategory =
         selectedCategory === 'All' || product.category === selectedCategory
       const matchesSearch =
@@ -29,7 +51,7 @@ export default function ProductFilters({ initialProducts }: ProductFiltersProps)
 
       return matchesCategory && matchesSearch
     })
-  }, [initialProducts, selectedCategory, search])
+  }, [products, selectedCategory, search])
 
   return (
     <div>
