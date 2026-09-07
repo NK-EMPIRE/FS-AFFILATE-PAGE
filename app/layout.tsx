@@ -19,20 +19,54 @@ const bricolage = Bricolage_Grotesque({
 })
 
 export const metadata: Metadata = {
-  title: 'FirstSelfie — Creator Equipment & Studio Gear',
+  metadataBase: new URL('https://firstselfie.com'),
+  title: {
+    default: 'FirstSelfie — Creator Equipment, Camera & Studio Production Hub',
+    template: '%s | FirstSelfie Creator Gear',
+  },
   description:
-    'Your First Frame to a Million Faces. Hand-curated cameras, lighting, mics, and studio equipment for high-growth creators.',
+    'Your First Frame to a Million Faces. Curated 4K cameras, wireless microphones, key lighting, tripods and studio gear tested by FirstSelfie.',
+  keywords: [
+    'FirstSelfie',
+    'Creator Studio Setup',
+    'Best YouTube Camera',
+    'Sony ZV-E10',
+    'Wireless Microphone',
+    'Godox Studio Lighting',
+    'Creator Equipment India',
+    'FirstSelfie Tamil',
+    'Affiliate Storefront',
+    'Content Creation Gear',
+  ],
+  authors: [{ name: 'FirstSelfie', url: 'https://firstselfie.com' }],
+  creator: 'FirstSelfie',
+  publisher: 'FirstSelfie',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
+      { url: '/icon.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  alternates: {
+    canonical: 'https://firstselfie.com',
+  },
   openGraph: {
-    title: 'FirstSelfie — Creator Equipment & Studio Gear',
+    title: 'FirstSelfie — Creator Equipment & Studio Production Guide',
     description:
-      'Your First Selfie to Your First Crore. Discover handpicked cameras, lighting, and audio equipment.',
+      'Your First Selfie to Your First Crore. Discover handpicked studio gear, cameras, audio, and lighting equipment tested for creators.',
     url: 'https://firstselfie.com',
     siteName: 'FirstSelfie',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&h=630&q=80',
+        url: '/fs-banner-yt.jpg',
         width: 1200,
         height: 630,
+        alt: 'FirstSelfie Creator Studio Gear',
       },
     ],
     locale: 'en_US',
@@ -41,7 +75,19 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'FirstSelfie — Creator Equipment & Studio Gear',
-    description: 'Your First Frame to a Million Faces.',
+    description: 'Your First Frame to a Million Faces. Tested creator studio equipment stack.',
+    images: ['/fs-banner-yt.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 }
 
