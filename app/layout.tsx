@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { Plus_Jakarta_Sans, Bricolage_Grotesque } from 'next/font/google'
 import './globals.css'
 import FirstSelfieLogo from '@/components/Logo'
 import Link from 'next/link'
@@ -8,6 +8,13 @@ const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-sans',
+  display: 'swap',
+})
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-bricolage',
   display: 'swap',
 })
 
@@ -44,10 +51,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={jakarta.variable}>
+    <html lang="en" className={`${jakarta.variable} ${bricolage.variable}`}>
       <body className="bg-[#0A0A0B] font-sans text-zinc-100 antialiased selection:bg-[#FF6B00] selection:text-black">
         {/* Subtle Ambient Radial Lighting */}
-        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[850px] h-[320px] bg-gradient-to-b from-[#FF6B00]/8 to-transparent blur-[140px] pointer-events-none z-0" />
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[350px] bg-gradient-to-b from-[#FF6B00]/7 to-transparent blur-[140px] pointer-events-none z-0" />
 
         <div className="relative z-10 flex min-h-screen flex-col justify-between">
           {/* Minimalist Top Studio Bar */}
@@ -55,17 +62,32 @@ export default function RootLayout({
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5">
               <FirstSelfieLogo size="md" />
 
-              <div className="flex items-center gap-5">
-                <div className="hidden sm:flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-zinc-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] animate-pulse" />
-                  <span>Creator Gear Edition</span>
-                </div>
-                <Link
-                  href="/disclosure"
-                  className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+              <div className="flex items-center gap-4">
+                <a
+                  href="https://www.youtube.com/@firstselfietamil"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-semibold text-red-400 hover:bg-red-500/20 transition-colors"
                 >
-                  Disclosure
-                </Link>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                  <span>YouTube</span>
+                </a>
+                <a
+                  href="https://www.instagram.com/firstselfie_tamil/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-pink-500/30 bg-pink-500/10 px-3 py-1 text-[11px] font-semibold text-pink-400 hover:bg-pink-500/20 transition-colors"
+                >
+                  <span>Instagram</span>
+                </a>
+                <a
+                  href="https://whatsapp-community.firstselfie.in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                >
+                  <span>Join Community</span>
+                </a>
               </div>
             </div>
           </header>

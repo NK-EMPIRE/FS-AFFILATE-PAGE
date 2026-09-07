@@ -1,8 +1,9 @@
 import React from 'react'
 import { createAdminClient } from '@/lib/supabase/server'
-import StorefrontHero from '@/components/StorefrontHero'
+import CreatorBannerHero from '@/components/CreatorBannerHero'
 import CreatorChecklist from '@/components/CreatorChecklist'
 import ProductFilters from '@/components/ProductFilters'
+import CommunitySection from '@/components/CommunitySection'
 import { Product } from '@/lib/types'
 import { FALLBACK_PRODUCTS } from '@/lib/initialData'
 
@@ -31,15 +32,18 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-      {/* Editorial Boutique Hero Component */}
-      <StorefrontHero />
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      {/* 1. YouTube Header Banner, Profile Avatar & Bricolage Grotesque Hero */}
+      <CreatorBannerHero />
 
-      {/* Structured Studio Checklist Component */}
+      {/* 2. Structured Studio Equipment Checklist */}
       <CreatorChecklist />
 
-      {/* Boutique Gallery & Filter Component */}
+      {/* 3. Boutique Product Showcase with Verified Amazon Media */}
       <ProductFilters initialProducts={products} />
+
+      {/* 4. Creator Channels & Community Embeds (YouTube, Instagram, WhatsApp) */}
+      <CommunitySection />
     </div>
   )
 }
