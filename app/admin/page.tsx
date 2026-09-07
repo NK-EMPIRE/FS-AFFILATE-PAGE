@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/server'
 import { Product } from '@/lib/types'
 import AdminProductTable from './AdminProductTable'
-import { Plus, BarChart3, Package } from 'lucide-react'
+import AdminHeaderNav from '@/components/AdminHeaderNav'
+import { Package, BarChart3 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,22 +43,7 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/admin/analytics"
-            className="flex items-center gap-2 rounded-lg border border-[#262626] bg-[#1A1A1A] px-4 py-2 text-xs font-semibold text-[#FFE0C2] hover:border-[#FF6B00] hover:text-[#FF6B00] transition"
-          >
-            <BarChart3 className="w-4 h-4" />
-            <span>Analytics</span>
-          </Link>
-          <Link
-            href="/admin/products/new"
-            className="flex items-center gap-2 rounded-lg bg-[#FF6B00] px-4 py-2 text-xs font-bold text-black hover:bg-[#FF3D00] hover:text-white transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Product</span>
-          </Link>
-        </div>
+        <AdminHeaderNav />
       </div>
 
       {/* Overview Stats */}
