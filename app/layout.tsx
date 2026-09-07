@@ -19,13 +19,15 @@ const bricolage = Bricolage_Grotesque({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://firstselfie.com'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://fs-gadgets.vercel.app'
+  ),
   title: {
-    default: 'FirstSelfie — Creator Equipment, Camera & Studio Production Hub',
+    default: 'FirstSelfie — Creator Equipment & Studio Production Gear',
     template: '%s | FirstSelfie Creator Gear',
   },
   description:
-    'Your First Frame to a Million Faces. Curated 4K cameras, wireless microphones, key lighting, tripods and studio gear tested by FirstSelfie.',
+    'Your First Selfie to Your First Crore. Official creator studio stack tested and recommended by FirstSelfie.',
   keywords: [
     'FirstSelfie',
     'Creator Studio Setup',
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
     'Affiliate Storefront',
     'Content Creation Gear',
   ],
-  authors: [{ name: 'FirstSelfie', url: 'https://firstselfie.com' }],
+  authors: [{ name: 'FirstSelfie', url: 'https://fs-gadgets.vercel.app' }],
   creator: 'FirstSelfie',
   publisher: 'FirstSelfie',
   icons: {
@@ -53,20 +55,20 @@ export const metadata: Metadata = {
     ],
   },
   alternates: {
-    canonical: 'https://firstselfie.com',
+    canonical: 'https://fs-gadgets.vercel.app',
   },
   openGraph: {
-    title: 'FirstSelfie — Creator Equipment & Studio Production Guide',
+    title: 'FirstSelfie — Creator Equipment & Studio Gear',
     description:
-      'Your First Selfie to Your First Crore. Discover handpicked studio gear, cameras, audio, and lighting equipment tested for creators.',
-    url: 'https://firstselfie.com',
+      'Your First Selfie to Your First Crore. Discover handpicked cameras, lighting, and audio equipment.',
+    url: 'https://fs-gadgets.vercel.app',
     siteName: 'FirstSelfie',
     images: [
       {
-        url: '/fs-banner-yt.jpg',
+        url: '/share-card.jpg',
         width: 1200,
         height: 630,
-        alt: 'FirstSelfie Creator Studio Gear',
+        alt: 'FirstSelfie — Your First Selfie to Your First Crore',
       },
     ],
     locale: 'en_US',
@@ -75,8 +77,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'FirstSelfie — Creator Equipment & Studio Gear',
-    description: 'Your First Frame to a Million Faces. Tested creator studio equipment stack.',
-    images: ['/fs-banner-yt.jpg'],
+    description: 'Your First Selfie to Your First Crore. Creator studio equipment stack.',
+    images: ['/share-card.jpg'],
   },
   robots: {
     index: true,

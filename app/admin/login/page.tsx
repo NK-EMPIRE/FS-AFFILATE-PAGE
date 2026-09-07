@@ -23,51 +23,27 @@ export default function AdminLoginPage() {
     setErrorMsg(null)
 
     try {
-      // 1. Try server-side authentication route (with rate-limiting and audit log)
-      let serverAuthOk = false
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        })
-
-        if (res.ok) {
-          serverAuthOk = true
-        } else {
-          const text = await res.text()
-          let data: any = {}
-          try {
-            data = text ? JSON.parse(text) : {}
-          } catch {
-            data = { error: text }
-          }
-          if (res.status === 429 || res.status === 401 || res.status === 403) {
-            setErrorMsg(data.error || 'Invalid credentials or unauthorized.')
-            setLoading(false)
-            return
-          }
-        }
-      } catch (fetchErr) {
-        console.warn('Server auth route unreachable, proceeding to direct client fallback:', fetchErr)
-      }
-
-      // 2. Direct client session authentication to ensure browser cookies are set
       const supabase = createClient()
+
+      // 1. Direct browser client authentication
       const { data: authData, error: clientAuthErr } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (clientAuthErr) {
-        setErrorMsg(clientAuthErr.message)
+        setErrorMsg(clientAuthErr.message || 'Invalid email or password.')
         setLoading(false)
         return
       }
 
-      // 3. Verify user is in admins table
+      if (!authData?.user) {
+        setErrorMsg('Authentication failed. No user profile returned.')
+        setLoading(false)
+        return
+      }
+
+      // 2. Verify admin permissions in admins table
       const { data: adminCheck, error: adminErr } = await supabase
         .from('admins')
         .select('id')
@@ -76,13 +52,13 @@ export default function AdminLoginPage() {
 
       if (adminErr || !adminCheck) {
         await supabase.auth.signOut()
-        setErrorMsg('Unauthorized: This account is not registered in the admin roster.')
+        setErrorMsg('Unauthorized: Your user account is not registered in the admin roster.')
         setLoading(false)
         return
       }
 
-      router.push('/admin')
-      router.refresh()
+      // 3. Navigate directly to /admin dashboard
+      window.location.href = '/admin'
     } catch (err: any) {
       setErrorMsg(err?.message || 'Login failed. Please try again.')
       setLoading(false)
