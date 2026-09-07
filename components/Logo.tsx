@@ -14,9 +14,9 @@ export default function FirstSelfieLogo({
   variant = 'secondary',
 }: LogoProps) {
   const dimensions = {
-    sm: { height: 36, width: 140 },
-    md: { height: 48, width: 185 },
-    lg: { height: 60, width: 230 },
+    sm: { height: 42, width: 160 },
+    md: { height: 56, width: 220 },
+    lg: { height: 72, width: 280 },
   }
 
   const logoSrc = variant === 'primary' ? '/logo-primary.png' : '/logo-secondary.png'
@@ -31,7 +31,7 @@ export default function FirstSelfieLogo({
           width={width}
           height={height}
           priority
-          className="h-auto w-auto object-contain max-h-12"
+          className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-sm"
         />
       </div>
     </Link>

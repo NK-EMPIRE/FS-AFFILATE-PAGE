@@ -36,11 +36,13 @@ export default async function HomePage() {
       {/* 1. YouTube Header Banner, Profile Avatar & Bricolage Grotesque Hero */}
       <CreatorBannerHero />
 
-      {/* 2. Structured Studio Equipment Checklist */}
-      <CreatorChecklist />
-
-      {/* 3. Boutique Product Showcase with Verified Amazon Media */}
+      {/* 2. Boutique Product Showcase with Verified Amazon Media & Custom Filter Bar */}
       <ProductFilters initialProducts={products} />
+
+      {/* 3. Creative Studio Equipment Checklist (Relocated seamlessly before community) */}
+      <div id="checklist-section" className="pt-10 scroll-mt-24">
+        <CreatorChecklist />
+      </div>
 
       {/* 4. Creator Channels & Community Embeds (YouTube, Instagram, WhatsApp) */}
       <CommunitySection />

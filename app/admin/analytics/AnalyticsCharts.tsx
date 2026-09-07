@@ -406,6 +406,81 @@ export default function AnalyticsCharts({ clicks }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Comprehensive Granular Events & Conversion Log Table */}
+      <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 sm:p-6 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[#242424]">
+          <div>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>Real-Time Granular Event Log & Traffic Attribution</span>
+            </h3>
+            <p className="mt-0.5 text-xs text-zinc-400">
+              Complete chronological stream of incoming user clicks, UTM campaigns, and outbound Amazon conversions.
+            </p>
+          </div>
+          <span className="text-xs font-mono text-zinc-400 self-start sm:self-auto">
+            Showing latest {Math.min(filteredClicks.length, 25)} events
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="text-zinc-400 bg-white/[0.02] border-b border-[#242424]">
+              <tr>
+                <th className="py-2.5 px-3 font-semibold">Time</th>
+                <th className="py-2.5 px-3 font-semibold">Product Clicked</th>
+                <th className="py-2.5 px-3 font-semibold">Category</th>
+                <th className="py-2.5 px-3 font-semibold">Source / Referrer</th>
+                <th className="py-2.5 px-3 font-semibold">Device</th>
+                <th className="py-2.5 px-3 font-semibold">Location</th>
+                <th className="py-2.5 px-3 font-semibold">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#242424]">
+              {filteredClicks.slice(0, 25).map((c, idx) => {
+                const timeStr = new Date(c.clicked_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                const dateStr = new Date(c.clicked_at).toLocaleDateString([], { month: 'short', day: 'numeric' })
+                return (
+                  <tr key={c.id || idx} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 px-3 font-mono text-zinc-400 whitespace-nowrap">
+                      {dateStr} {timeStr}
+                    </td>
+                    <td className="py-3 px-3 font-medium text-white max-w-[220px] truncate">
+                      {c.products?.title || 'Creator Equipment Item'}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="rounded-md bg-white/[0.05] border border-white/[0.08] px-2 py-0.5 text-[10px] font-mono text-zinc-300">
+                        {c.products?.category || 'Gear'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 font-mono text-[#FF9A3C] max-w-[160px] truncate">
+                      {c.utm_source || c.referrer || 'Direct / Bio Link'}
+                    </td>
+                    <td className="py-3 px-3 uppercase text-zinc-400 font-mono text-[11px]">
+                      {c.device || 'Mobile'}
+                    </td>
+                    <td className="py-3 px-3 text-zinc-300">
+                      {c.country || 'India'}
+                    </td>
+                    <td className="py-3 px-3">
+                      {c.is_bot ? (
+                        <span className="rounded-full bg-red-500/10 border border-red-500/30 px-2 py-0.5 text-[10px] font-bold text-red-400">
+                          Bot Filtered
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                          Outbound 302
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }

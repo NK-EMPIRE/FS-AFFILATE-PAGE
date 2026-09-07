@@ -7,7 +7,7 @@ export default function CreatorBannerHero() {
   return (
     <section className="relative mb-10 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#111113] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
       {/* 1. Full-Width YouTube Channel Header Banner */}
-      <div className="relative h-44 sm:h-64 md:h-80 w-full overflow-hidden bg-zinc-950">
+      <div className="relative aspect-[16/7] sm:aspect-[16/6] md:aspect-[21/7] w-full overflow-hidden bg-zinc-950">
         <Image
           src="/fs-banner-yt.jpg"
           alt="FirstSelfie Channel Banner"
@@ -16,13 +16,12 @@ export default function CreatorBannerHero() {
           className="object-cover object-center"
           sizes="(max-width: 1280px) 100vw, 1280px"
         />
-        {/* Cinematic Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#111113] via-[#111113]/30 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#111113]/60 via-transparent to-[#111113]/60" />
+        {/* Subtle, crisp gradient overlay strictly at the bottom edge for readability */}
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#111113] to-transparent pointer-events-none" />
       </div>
 
-      {/* 2. Creator Identity Stage (Avatar, Name, Badges & Social Links) */}
-      <div className="relative px-5 sm:px-8 pb-8 pt-0 -mt-16 sm:-mt-20">
+      {/* 2. Creator Identity Stage (Avatar, Name, Verified Blue Tick & Social Links) */}
+      <div className="relative px-5 sm:px-8 pb-8 pt-0 -mt-14 sm:-mt-16 md:-mt-20">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
           {/* Avatar and Creator Info */}
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6 text-center sm:text-left">
@@ -44,9 +43,11 @@ export default function CreatorBannerHero() {
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-hero">
                   FirstSelfie
                 </h2>
-                <CheckCircle2 className="w-5 h-5 text-[#FF6B00] fill-[#FF6B00]/20" />
-                <span className="rounded-md bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[10px] font-mono text-zinc-300 uppercase tracking-wider">
-                  Official Studio
+                {/* Verified Blue Tick Badge */}
+                <span title="Verified Creator" className="inline-flex items-center justify-center text-[#3897F0]">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.2 14.2l-3.5-3.5 1.41-1.41 2.09 2.08 5.69-5.69 1.41 1.41-7.1 7.11z" />
+                  </svg>
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-zinc-400 font-medium">

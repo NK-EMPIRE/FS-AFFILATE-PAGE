@@ -62,31 +62,21 @@ export default function RootLayout({
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5">
               <FirstSelfieLogo size="md" />
 
-              <div className="flex items-center gap-4">
+              {/* Creative Studio Status Pill & Quick Action */}
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-xs text-zinc-300">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF6B00] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF6B00]"></span>
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-300">Studio Setup 2026</span>
+                </div>
+
                 <a
-                  href="https://www.youtube.com/@firstselfietamil"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-semibold text-red-400 hover:bg-red-500/20 transition-colors"
+                  href="#checklist-section"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#FF6B00]/40 bg-[#FF6B00]/10 px-3.5 py-1 text-xs font-semibold text-[#FF9A3C] hover:bg-[#FF6B00] hover:text-black transition-all shadow-sm active:scale-95"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                  <span>YouTube</span>
-                </a>
-                <a
-                  href="https://www.instagram.com/firstselfie_tamil/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-pink-500/30 bg-pink-500/10 px-3 py-1 text-[11px] font-semibold text-pink-400 hover:bg-pink-500/20 transition-colors"
-                >
-                  <span>Instagram</span>
-                </a>
-                <a
-                  href="https://whatsapp-community.firstselfie.in/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                >
-                  <span>Join Community</span>
+                  <span>Core Stack Checklist</span>
                 </a>
               </div>
             </div>

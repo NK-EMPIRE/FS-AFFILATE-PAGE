@@ -4,11 +4,20 @@ import React, { useState, useMemo } from 'react'
 import { Product } from '@/lib/types'
 import { FALLBACK_PRODUCTS } from '@/lib/initialData'
 import ProductCard from './ProductCard'
-import { Search, X } from 'lucide-react'
+import { Search, X, ChevronDown, Check } from 'lucide-react'
 
 interface ProductFiltersProps {
   initialProducts: Product[]
 }
+
+const SORT_OPTIONS = [
+  { value: 'featured', label: 'Sort: Featured' },
+  { value: 'price-asc', label: 'Price: Low → High' },
+  { value: 'price-desc', label: 'Price: High → Low' },
+  { value: 'name', label: 'Name: A → Z' },
+] as const
+
+type SortOption = (typeof SORT_OPTIONS)[number]['value']
 
 export default function ProductFilters({ initialProducts }: ProductFiltersProps) {
   const [products, setProducts] = useState<Product[]>(
@@ -16,7 +25,8 @@ export default function ProductFilters({ initialProducts }: ProductFiltersProps)
   )
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
-  const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'name'>('featured')
+  const [sortBy, setSortBy] = useState<SortOption>('featured')
+  const [sortOpen, setSortOpen] = useState(false)
 
   // Client-side fallback sync
   React.useEffect(() => {
@@ -37,6 +47,18 @@ export default function ProductFilters({ initialProducts }: ProductFiltersProps)
       })
     }
   }, [products.length])
+
+  // Close sort menu on click outside
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('#sort-dropdown-container')) {
+        setSortOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   const categories = useMemo(() => {
     const set = new Set(products.map(p => p.category).filter(Boolean))
@@ -67,10 +89,12 @@ export default function ProductFilters({ initialProducts }: ProductFiltersProps)
     return [...list].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
   }, [products, selectedCategory, search, sortBy])
 
+  const currentSortLabel = SORT_OPTIONS.find(o => o.value === sortBy)?.label || 'Sort: Featured'
+
   return (
     <div>
-      {/* Floating Minimal Search & Navigation Capsule */}
-      <div className="sticky top-[64px] z-30 mb-10 rounded-2xl border border-white/[0.08] bg-[#0E0E10]/80 p-2 sm:p-2.5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      {/* Floating Minimal Search & Navigation Capsule - sticky top offset fixed to avoid header conflict */}
+      <div className="sticky top-[72px] sm:top-[76px] z-30 mb-8 rounded-2xl border border-white/[0.08] bg-[#0E0E10]/90 p-2 sm:p-2.5 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           {/* Search Input */}
           <div className="relative flex-1">
@@ -81,7 +105,7 @@ export default function ProductFilters({ initialProducts }: ProductFiltersProps)
               placeholder="Search cameras, lighting, mics, softboxes..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full rounded-xl bg-white/[0.03] border border-white/[0.04] pl-10 pr-9 py-2 text-xs sm:text-sm text-white placeholder-zinc-500 focus:border-white/[0.2] focus:outline-none transition-colors"
+              className="w-full rounded-xl bg-white/[0.04] border border-white/[0.06] pl-10 pr-9 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 focus:border-[#FF6B00]/60 focus:bg-white/[0.06] focus:outline-none transition-all"
             />
             {search && (
               <button
@@ -95,18 +119,47 @@ export default function ProductFilters({ initialProducts }: ProductFiltersProps)
             )}
           </div>
 
-          {/* Sort Selector */}
-          <div className="shrink-0">
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as any)}
-              className="w-full sm:w-auto appearance-none rounded-xl bg-white/[0.03] border border-white/[0.04] px-3.5 py-2 text-xs font-mono text-zinc-400 focus:border-white/[0.2] focus:outline-none cursor-pointer"
+          {/* Custom Interactive React Sort Menu */}
+          <div id="sort-dropdown-container" className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setSortOpen(!sortOpen)}
+              className="w-full sm:w-auto flex items-center justify-between gap-2 rounded-xl border border-white/[0.06] bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-zinc-200 hover:border-white/[0.15] hover:text-white transition-all shadow-sm"
+              aria-haspopup="listbox"
+              aria-expanded={sortOpen}
             >
-              <option value="featured" className="bg-[#141416]">Sort: Featured</option>
-              <option value="price-asc" className="bg-[#141416]">Price: Low → High</option>
-              <option value="price-desc" className="bg-[#141416]">Price: High → Low</option>
-              <option value="name" className="bg-[#141416]">Name: A → Z</option>
-            </select>
+              <span>{currentSortLabel}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${sortOpen ? 'rotate-180 text-white' : ''}`} />
+            </button>
+
+            {/* Custom Dropdown Modal */}
+            {sortOpen && (
+              <div className="absolute right-0 mt-1.5 w-48 rounded-xl border border-white/[0.1] bg-[#141417] p-1.5 shadow-2xl z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100">
+                {SORT_OPTIONS.map(option => {
+                  const active = sortBy === option.value
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setSortBy(option.value)
+                        setSortOpen(false)
+                      }}
+                      className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                        active
+                          ? 'bg-[#FF6B00]/15 text-[#FF9A3C]'
+                          : 'text-zinc-300 hover:bg-white/[0.05] hover:text-white'
+                      }`}
+                      role="option"
+                      aria-selected={active}
+                    >
+                      <span>{option.label}</span>
+                      {active && <Check className="w-3.5 h-3.5 text-[#FF6B00]" />}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 
