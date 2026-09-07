@@ -3,12 +3,13 @@
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react'
+import { Lock, Mail, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import FirstSelfieLogo from '@/components/Logo'
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('firstselfie.official@gmail.com')
+  const [password, setPassword] = useState('FirstSelfie2026!')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
@@ -43,7 +44,6 @@ export default function AdminLoginPage() {
           } catch {
             data = { error: text }
           }
-          // If explicitly rate-limited or invalid credentials, display that directly
           if (res.status === 429 || res.status === 401 || res.status === 403) {
             setErrorMsg(data.error || 'Invalid credentials or unauthorized.')
             setLoading(false)
@@ -126,7 +126,7 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="admin@firstselfie.com"
+                placeholder="firstselfie.official@gmail.com"
                 className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] pl-10 pr-4 py-2.5 text-sm text-white focus:border-[#FF6B00] focus:outline-none"
               />
             </div>
@@ -139,13 +139,21 @@ export default function AdminLoginPage() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] pl-10 pr-4 py-2.5 text-sm text-white focus:border-[#FF6B00] focus:outline-none"
+                className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] pl-10 pr-10 py-2.5 text-sm text-white focus:border-[#FF6B00] focus:outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-200 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
