@@ -35,28 +35,39 @@ export default function ProductFilters({ initialProducts }: ProductFiltersProps)
     <div>
       {/* Search and Category Filter Bar */}
       <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        {/* Search Bar */}
+        {/* Search Bar with Accessible Label */}
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <label htmlFor="storefront-search" className="sr-only">
+            Search creator equipment
+          </label>
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" aria-hidden="true" />
           <input
-            type="text"
+            id="storefront-search"
+            type="search"
             placeholder="Search cameras, lighting, mics, softboxes..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full rounded-xl bg-[#1A1A1A] border border-[#262626] pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-[#FF6B00] focus:outline-none focus:ring-1 focus:ring-[#FF6B00]"
+            aria-label="Search creator equipment by name, category, or description"
+            className="w-full rounded-xl bg-[#1A1A1A] border border-[#262626] pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-[#FF6B00] focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/40 transition"
           />
         </div>
 
-        {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-          <SlidersHorizontal className="w-4 h-4 text-zinc-500 shrink-0 mr-1" />
+        {/* Category Pills with ARIA Tab/Button Semantics */}
+        <div 
+          role="group" 
+          aria-label="Filter equipment by category"
+          className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none"
+        >
+          <SlidersHorizontal className="w-4 h-4 text-zinc-500 shrink-0 mr-1" aria-hidden="true" />
           {categories.map(category => {
             const isSelected = selectedCategory === category
             return (
               <button
                 key={category}
+                type="button"
+                aria-pressed={isSelected}
                 onClick={() => setSelectedCategory(category)}
-                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${
                   isSelected
                     ? 'bg-[#FF6B00] text-black shadow-md shadow-[#FF6B00]/20'
                     : 'bg-[#1A1A1A] border border-[#262626] text-zinc-400 hover:text-white hover:border-zinc-700'
@@ -70,12 +81,13 @@ export default function ProductFilters({ initialProducts }: ProductFiltersProps)
       </div>
 
       {/* Product Count Display */}
-      <div className="mb-6 flex items-center justify-between text-xs text-zinc-400">
+      <div className="mb-6 flex items-center justify-between text-xs text-zinc-400" aria-live="polite">
         <span>Showing {filteredProducts.length} creator gear recommendation{filteredProducts.length === 1 ? '' : 's'}</span>
         {selectedCategory !== 'All' && (
           <button
+            type="button"
             onClick={() => setSelectedCategory('All')}
-            className="text-[#FF9A3C] hover:underline"
+            className="text-[#FF9A3C] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF9A3C] rounded px-1"
           >
             Reset filter
           </button>

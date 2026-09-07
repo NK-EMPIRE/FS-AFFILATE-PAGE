@@ -12,7 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { Smartphone, Monitor, Tablet, Globe } from 'lucide-react'
+import { Smartphone, Monitor, Tablet, Globe, BarChart3, TrendingUp } from 'lucide-react'
 
 interface ClickRecord {
   id: string
@@ -38,6 +38,8 @@ interface Props {
 
 export default function AnalyticsCharts({ clicks }: Props) {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d')
+
+  const totalClicksAllTime = clicks.length
 
   // Filter clicks based on time range
   const filteredClicks = useMemo(() => {
@@ -137,17 +139,35 @@ export default function AnalyticsCharts({ clicks }: Props) {
     }
   }, [filteredClicks])
 
+  if (totalClicksAllTime === 0) {
+    return (
+      <div className="rounded-xl border border-[#262626] bg-[#1A1A1A] p-12 text-center">
+        <BarChart3 className="w-10 h-10 text-[#FF6B00] mx-auto mb-3" aria-hidden="true" />
+        <h2 className="text-base font-bold text-white">No Affiliate Click Events Recorded Yet</h2>
+        <p className="mt-1 text-xs text-zinc-400 max-w-md mx-auto">
+          Analytics will populate automatically once visitors start viewing creator gear and following affiliate redirect links (/go/[slug]).
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       {/* Time Range Selector */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-white">Traffic Trends</h2>
-        <div className="flex items-center gap-1.5 rounded-lg border border-[#262626] bg-[#1A1A1A] p-1">
+        <div 
+          role="group"
+          aria-label="Filter analytics by time range"
+          className="flex items-center gap-1.5 rounded-lg border border-[#262626] bg-[#1A1A1A] p-1"
+        >
           {(['7d', '30d', '90d', 'all'] as const).map(range => (
             <button
               key={range}
+              type="button"
+              aria-pressed={timeRange === range}
               onClick={() => setTimeRange(range)}
-              className={`rounded px-3 py-1 text-xs font-semibold uppercase transition ${
+              className={`rounded px-3 py-1 text-xs font-semibold uppercase transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF6B00] ${
                 timeRange === range
                   ? 'bg-[#FF6B00] text-black font-bold'
                   : 'text-zinc-400 hover:text-white'
@@ -244,17 +264,17 @@ export default function AnalyticsCharts({ clicks }: Props) {
             <h3 className="text-sm font-semibold text-zinc-200 mb-3">Device Breakdown</h3>
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-lg bg-[#0A0A0A] border border-[#262626] p-3 text-center">
-                <Smartphone className="w-4 h-4 mx-auto text-[#FF6B00] mb-1" />
+                <Smartphone className="w-4 h-4 mx-auto text-[#FF6B00] mb-1" aria-hidden="true" />
                 <div className="text-xs text-zinc-400">Mobile</div>
                 <div className="text-sm font-bold text-white mt-0.5">{deviceStats.mobile}%</div>
               </div>
               <div className="rounded-lg bg-[#0A0A0A] border border-[#262626] p-3 text-center">
-                <Monitor className="w-4 h-4 mx-auto text-[#FF9A3C] mb-1" />
+                <Monitor className="w-4 h-4 mx-auto text-[#FF9A3C] mb-1" aria-hidden="true" />
                 <div className="text-xs text-zinc-400">Desktop</div>
                 <div className="text-sm font-bold text-white mt-0.5">{deviceStats.desktop}%</div>
               </div>
               <div className="rounded-lg bg-[#0A0A0A] border border-[#262626] p-3 text-center">
-                <Tablet className="w-4 h-4 mx-auto text-zinc-400 mb-1" />
+                <Tablet className="w-4 h-4 mx-auto text-zinc-400 mb-1" aria-hidden="true" />
                 <div className="text-xs text-zinc-400">Tablet</div>
                 <div className="text-sm font-bold text-white mt-0.5">{deviceStats.tablet}%</div>
               </div>

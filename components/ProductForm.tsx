@@ -174,63 +174,76 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
       <div className="rounded-xl border border-[#262626] bg-[#1A1A1A] p-6 space-y-5">
         {/* Title */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-300 mb-1">
-            Product Title *
+          <label htmlFor="product-title" className="block text-xs font-semibold text-zinc-300 mb-1">
+            Product Title <span className="text-[#FF6B00]" aria-hidden="true">*</span>
           </label>
           <input
+            id="product-title"
             type="text"
             required
+            aria-required="true"
+            aria-invalid={!!errors.title}
+            aria-describedby={errors.title ? 'title-error' : undefined}
             value={title}
             onChange={e => setTitle(e.target.value)}
             onBlur={handleTitleBlur}
             placeholder="e.g. Godox 60W Studio Video Key/Fill Light"
-            className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white focus:border-[#FF6B00] focus:outline-none"
+            className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/40 focus:outline-none transition"
           />
-          {errors.title && <p className="mt-1 text-xs text-red-400">{errors.title}</p>}
+          {errors.title && <p id="title-error" className="mt-1 text-xs text-red-400" role="alert">{errors.title}</p>}
         </div>
 
         {/* Slug */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-300 mb-1">
-            Slug * (/go/[slug])
+          <label htmlFor="product-slug" className="block text-xs font-semibold text-zinc-300 mb-1">
+            Slug <span className="text-[#FF6B00]" aria-hidden="true">*</span> <span className="text-zinc-500 font-normal">(/go/[slug])</span>
           </label>
           <input
+            id="product-slug"
             type="text"
             required
+            aria-required="true"
+            aria-invalid={!!errors.slug}
+            aria-describedby={errors.slug ? 'slug-error' : undefined}
             value={slug}
             onChange={e => setSlug(e.target.value.toLowerCase())}
             placeholder="godox-60w-studio-light"
-            className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white font-mono focus:border-[#FF6B00] focus:outline-none"
+            className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white font-mono focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/40 focus:outline-none transition"
           />
-          {errors.slug && <p className="mt-1 text-xs text-red-400">{errors.slug}</p>}
+          {errors.slug && <p id="slug-error" className="mt-1 text-xs text-red-400" role="alert">{errors.slug}</p>}
         </div>
 
         {/* Price & Category */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-300 mb-1">
-              Price (INR) *
+            <label htmlFor="product-price" className="block text-xs font-semibold text-zinc-300 mb-1">
+              Price (INR) <span className="text-[#FF6B00]" aria-hidden="true">*</span>
             </label>
             <input
+              id="product-price"
               type="number"
               step="any"
               required
+              aria-required="true"
+              aria-invalid={!!errors.price}
+              aria-describedby={errors.price ? 'price-error' : undefined}
               value={price}
               onChange={e => setPrice(e.target.value)}
               placeholder="9990"
-              className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white font-mono focus:border-[#FF6B00] focus:outline-none"
+              className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white font-mono focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/40 focus:outline-none transition"
             />
-            {errors.price && <p className="mt-1 text-xs text-red-400">{errors.price}</p>}
+            {errors.price && <p id="price-error" className="mt-1 text-xs text-red-400" role="alert">{errors.price}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-zinc-300 mb-1">
-              Category *
+            <label htmlFor="product-category" className="block text-xs font-semibold text-zinc-300 mb-1">
+              Category <span className="text-[#FF6B00]" aria-hidden="true">*</span>
             </label>
             <select
+              id="product-category"
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white focus:border-[#FF6B00] focus:outline-none"
+              className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/40 focus:outline-none transition"
             >
               <option value="Camera">Camera</option>
               <option value="Camera Tripod">Camera Tripod</option>
@@ -239,24 +252,28 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
               <option value="Storage">Storage</option>
               <option value="Accessories">Accessories</option>
             </select>
-            {errors.category && <p className="mt-1 text-xs text-red-400">{errors.category}</p>}
+            {errors.category && <p id="category-error" className="mt-1 text-xs text-red-400" role="alert">{errors.category}</p>}
           </div>
         </div>
 
         {/* Amazon Affiliate URL */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-300 mb-1">
-            Amazon Destination URL *
+          <label htmlFor="product-amazon-url" className="block text-xs font-semibold text-zinc-300 mb-1">
+            Amazon Destination URL <span className="text-[#FF6B00]" aria-hidden="true">*</span>
           </label>
           <input
+            id="product-amazon-url"
             type="url"
             required
+            aria-required="true"
+            aria-invalid={!!errors.amazon_url}
+            aria-describedby={errors.amazon_url ? 'amazon-url-error' : undefined}
             value={amazonUrl}
             onChange={e => setAmazonUrl(e.target.value)}
             placeholder="https://link.amazon/B0cgLebXO or https://www.amazon.in/dp/..."
-            className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white focus:border-[#FF6B00] focus:outline-none"
+            className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/40 focus:outline-none transition"
           />
-          {errors.amazon_url && <p className="mt-1 text-xs text-red-400">{errors.amazon_url}</p>}
+          {errors.amazon_url && <p id="amazon-url-error" className="mt-1 text-xs text-red-400" role="alert">{errors.amazon_url}</p>}
         </div>
 
         {/* Image Upload / URL */}

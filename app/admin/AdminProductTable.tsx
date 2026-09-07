@@ -129,27 +129,31 @@ export default function AdminProductTable({ initialProducts }: Props) {
 
                 <td className="py-3 px-4 text-center">
                   <button
+                    type="button"
                     onClick={() => product.id && toggleStatus(product.id, 'featured', !!product.featured)}
-                    className={`p-1 rounded-md transition ${
+                    aria-label={`Toggle featured status for ${product.title}. Currently ${product.featured ? 'featured' : 'not featured'}`}
+                    className={`p-1.5 rounded-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${
                       product.featured
                         ? 'bg-[#FF6B00]/20 text-[#FF6B00]'
                         : 'bg-[#262626] text-zinc-500 hover:text-zinc-300'
                     }`}
                   >
-                    {product.featured ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                    {product.featured ? <Check className="w-4 h-4" aria-hidden="true" /> : <X className="w-4 h-4" aria-hidden="true" />}
                   </button>
                 </td>
 
                 <td className="py-3 px-4 text-center">
                   <button
+                    type="button"
                     onClick={() => product.id && toggleStatus(product.id, 'active', !!product.active)}
-                    className={`p-1 rounded-md transition ${
+                    aria-label={`Toggle active status for ${product.title}. Currently ${product.active ? 'active' : 'inactive'}`}
+                    className={`p-1.5 rounded-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                       product.active
                         ? 'bg-emerald-500/20 text-emerald-400'
                         : 'bg-[#262626] text-zinc-500 hover:text-zinc-300'
                     }`}
                   >
-                    {product.active ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                    {product.active ? <Check className="w-4 h-4" aria-hidden="true" /> : <X className="w-4 h-4" aria-hidden="true" />}
                   </button>
                 </td>
 
@@ -158,56 +162,83 @@ export default function AdminProductTable({ initialProducts }: Props) {
                     <Link
                       href={`/go/${product.slug}`}
                       target="_blank"
-                      className="p-1.5 rounded bg-[#262626] text-zinc-400 hover:text-white hover:bg-zinc-700 transition"
+                      aria-label={`Test affiliate redirect link for ${product.title}`}
+                      className="p-1.5 rounded bg-[#262626] text-zinc-400 hover:text-white hover:bg-zinc-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                       title="Test Affiliate Link"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                     </Link>
                     <Link
                       href={`/admin/products/${product.id}/edit`}
-                      className="p-1.5 rounded bg-[#262626] text-zinc-400 hover:text-[#FF6B00] hover:bg-zinc-700 transition"
+                      aria-label={`Edit ${product.title}`}
+                      className="p-1.5 rounded bg-[#262626] text-zinc-400 hover:text-[#FF6B00] hover:bg-zinc-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                       title="Edit Product"
                     >
-                      <Edit2 className="w-3.5 h-3.5" />
+                      <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </Link>
                     <button
+                      type="button"
                       onClick={() => setDeleteTarget(product)}
-                      className="p-1.5 rounded bg-[#262626] text-zinc-400 hover:text-red-400 hover:bg-zinc-700 transition"
-                      title="Delete"
+                      aria-label={`Delete ${product.title}`}
+                      className="p-1.5 rounded bg-[#262626] text-zinc-400 hover:text-red-400 hover:bg-zinc-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                      title="Delete Product"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 </td>
               </tr>
             ))}
+
+            {products.length === 0 && (
+              <tr>
+                <td colSpan={6} className="py-12 px-4 text-center">
+                  <p className="text-sm font-semibold text-zinc-300">No equipment found in inventory</p>
+                  <p className="mt-1 text-xs text-zinc-500 mb-4">Add your first creator gear item to start generating affiliate redirects.</p>
+                  <Link
+                    href="/admin/products/new"
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-4 py-2 text-xs font-bold text-black hover:bg-[#FF3D00] hover:text-white transition"
+                  >
+                    Add Equipment
+                  </Link>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Accessible Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div 
+          role="dialog" 
+          aria-modal="true" 
+          aria-labelledby="delete-dialog-title"
+          onKeyDown={e => e.key === 'Escape' && setDeleteTarget(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+        >
           <div className="w-full max-w-sm rounded-xl border border-[#262626] bg-[#1A1A1A] p-6 shadow-2xl">
             <div className="flex items-center gap-3 text-red-400 mb-3">
-              <AlertTriangle className="w-5 h-5 shrink-0" />
-              <h3 className="font-bold text-white text-base">Confirm Delete</h3>
+              <AlertTriangle className="w-5 h-5 shrink-0" aria-hidden="true" />
+              <h3 id="delete-dialog-title" className="font-bold text-white text-base">Confirm Delete</h3>
             </div>
             <p className="text-xs text-zinc-400 mb-6">
-              Are you sure you want to permanently delete <strong className="text-white">{deleteTarget.title}</strong>? This action cannot be undone.
+              Are you sure you want to permanently delete <strong className="text-white">{deleteTarget.title}</strong>? This action will remove the product and invalidate cached links.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setDeleteTarget(null)}
                 disabled={actionLoading}
-                className="rounded-lg border border-[#262626] px-4 py-2 text-xs font-semibold text-zinc-300 hover:bg-[#262626]"
+                className="rounded-lg border border-[#262626] px-4 py-2 text-xs font-semibold text-zinc-300 hover:bg-[#262626] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleDelete}
                 disabled={actionLoading}
-                className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
               >
                 {actionLoading ? 'Deleting...' : 'Delete Product'}
               </button>
