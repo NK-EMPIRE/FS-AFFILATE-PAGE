@@ -50,14 +50,13 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
       const data = await res.json()
       if (res.ok && data.success && data.data) {
         const item = data.data
-        // Always populate title if empty, short, or was previously an error message
-        if (item.title && (!title || title.length < 5 || title.includes('503') || title.includes('Service Unavailable'))) {
+        if (item.title) {
           setTitle(item.title)
         }
-        if (item.slug && (!slug || slug.includes('503') || slug.includes('service-unavailable'))) {
+        if (item.slug) {
           setSlug(item.slug)
         }
-        if (item.price) {
+        if (item.price != null && item.price !== undefined) {
           setPrice(item.price.toString())
         }
         if (item.image_url) {
@@ -380,8 +379,17 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
           </div>
           {imageUrl && (
             <div className="mt-3 flex items-center gap-3">
-              <div className="relative h-14 w-14 overflow-hidden rounded-lg bg-black border border-[#262626]">
-                <Image src={imageUrl} alt="Preview" fill className="object-cover" />
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-black border border-[#262626]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrl}
+                  alt="Preview"
+                  className="h-full w-full object-contain p-1"
+                  onError={(e) => {
+                    // Gracefully hide broken preview
+                    (e.target as HTMLElement).style.display = 'none'
+                  }}
+                />
               </div>
               <span className="text-[11px] text-zinc-500 truncate max-w-md">{imageUrl}</span>
             </div>

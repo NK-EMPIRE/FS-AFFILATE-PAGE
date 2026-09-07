@@ -13,7 +13,19 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "*.media-amazon.com",
+      },
+      {
+        protocol: "https",
         hostname: "m.media-amazon.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.ssl-images-amazon.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.amazon-adsystem.com",
       },
     ],
   },
@@ -49,7 +61,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://us.i.posthog.com https://us-assets.i.posthog.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://images.unsplash.com https://bgweakdzfnfedmcbrkuo.supabase.co https://m.media-amazon.com",
+              "img-src 'self' data: blob: https://images.unsplash.com https://bgweakdzfnfedmcbrkuo.supabase.co https://*.media-amazon.com https://m.media-amazon.com https://*.ssl-images-amazon.com https://*.amazon-adsystem.com",
               "connect-src 'self' https://*.supabase.co https://us.i.posthog.com",
               "frame-ancestors 'none'",
             ].join('; '),
