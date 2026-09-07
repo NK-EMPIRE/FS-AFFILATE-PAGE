@@ -1,0 +1,111 @@
+'use client'
+
+import React, { useState, useMemo } from 'react'
+import { Product } from '@/lib/types'
+import ProductCard from './ProductCard'
+import { Search, SlidersHorizontal } from 'lucide-react'
+
+interface ProductFiltersProps {
+  initialProducts: Product[]
+}
+
+export default function ProductFilters({ initialProducts }: ProductFiltersProps) {
+  const [search, setSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('All')
+
+  const categories = useMemo(() => {
+    const set = new Set(initialProducts.map(p => p.category).filter(Boolean))
+    return ['All', ...Array.from(set)]
+  }, [initialProducts])
+
+  const filteredProducts = useMemo(() => {
+    return initialProducts.filter(product => {
+      const matchesCategory =
+        selectedCategory === 'All' || product.category === selectedCategory
+      const matchesSearch =
+        product.title.toLowerCase().includes(search.toLowerCase()) ||
+        (product.description && product.description.toLowerCase().includes(search.toLowerCase())) ||
+        product.category.toLowerCase().includes(search.toLowerCase())
+
+      return matchesCategory && matchesSearch
+    })
+  }, [initialProducts, selectedCategory, search])
+
+  return (
+    <div>
+      {/* Search and Category Filter Bar */}
+      <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        {/* Search Bar */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <input
+            type="text"
+            placeholder="Search cameras, lighting, mics, softboxes..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full rounded-xl bg-[#1A1A1A] border border-[#262626] pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-[#FF6B00] focus:outline-none focus:ring-1 focus:ring-[#FF6B00]"
+          />
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+          <SlidersHorizontal className="w-4 h-4 text-zinc-500 shrink-0 mr-1" />
+          {categories.map(category => {
+            const isSelected = selectedCategory === category
+            return (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                  isSelected
+                    ? 'bg-[#FF6B00] text-black shadow-md shadow-[#FF6B00]/20'
+                    : 'bg-[#1A1A1A] border border-[#262626] text-zinc-400 hover:text-white hover:border-zinc-700'
+                }`}
+              >
+                {category}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Product Count Display */}
+      <div className="mb-6 flex items-center justify-between text-xs text-zinc-400">
+        <span>Showing {filteredProducts.length} creator gear recommendation{filteredProducts.length === 1 ? '' : 's'}</span>
+        {selectedCategory !== 'All' && (
+          <button
+            onClick={() => setSelectedCategory('All')}
+            className="text-[#FF9A3C] hover:underline"
+          >
+            Reset filter
+          </button>
+        )}
+      </div>
+
+      {/* Product Grid */}
+      {filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map(product => (
+            <ProductCard key={product.id || product.slug} product={product} />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-[#262626] bg-[#1A1A1A]/40 p-12 text-center">
+          <p className="text-lg font-semibold text-zinc-300">No equipment found</p>
+          <p className="mt-1 text-sm text-zinc-500">
+            Try adjusting your search keywords or select a different category filter.
+          </p>
+          <button
+            onClick={() => {
+              setSearch('')
+              setSelectedCategory('All')
+            }}
+            className="mt-4 rounded-lg bg-[#FF6B00] px-4 py-2 text-xs font-bold text-black hover:bg-[#FF3D00] hover:text-white transition"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
