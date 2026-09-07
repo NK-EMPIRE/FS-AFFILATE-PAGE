@@ -4,7 +4,8 @@ import ProductFilters from '@/components/ProductFilters'
 import { Product } from '@/lib/types'
 import { Video, Award, Zap, ShieldCheck } from 'lucide-react'
 
-export const dynamic = 'force-dynamic'
+// Incremental Static Regeneration (ISR) with 5-minute cache window
+export const revalidate = 300
 
 export default async function HomePage() {
   const supabase = createAdminClient()

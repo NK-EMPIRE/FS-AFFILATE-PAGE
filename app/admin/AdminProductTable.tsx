@@ -36,6 +36,15 @@ export default function AdminProductTable({ initialProducts }: Props) {
       setProducts(prev =>
         prev.map(p => (p.id === id ? { ...p, [field]: currentVal } : p))
       )
+    } else {
+      const prod = products.find(p => p.id === id)
+      if (prod) {
+        fetch('/api/products/revalidate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: prod.slug }),
+        }).catch(console.error)
+      }
     }
   }
 
@@ -43,6 +52,7 @@ export default function AdminProductTable({ initialProducts }: Props) {
     if (!deleteTarget || !deleteTarget.id) return
     setActionLoading(true)
 
+    const targetSlug = deleteTarget.slug
     const supabase = createClient()
     const { error } = await supabase.from('products').delete().eq('id', deleteTarget.id)
 
@@ -51,6 +61,14 @@ export default function AdminProductTable({ initialProducts }: Props) {
     } else {
       setProducts(prev => prev.filter(p => p.id !== deleteTarget.id))
       setDeleteTarget(null)
+
+      if (targetSlug) {
+        fetch('/api/products/revalidate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: targetSlug }),
+        }).catch(console.error)
+      }
     }
     setActionLoading(false)
   }

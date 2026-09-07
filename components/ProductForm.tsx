@@ -136,6 +136,17 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
       }
     }
 
+    // Invalidate Redis product cache and Next.js ISR cache
+    try {
+      await fetch('/api/products/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: payload.slug }),
+      })
+    } catch (revalErr) {
+      console.error('Revalidation error:', revalErr)
+    }
+
     router.push('/admin')
     router.refresh()
   }

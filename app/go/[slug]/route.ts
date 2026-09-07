@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { getPostHogClient } from '@/lib/posthog'
 import { SlugSchema } from '@/lib/types'
+import { getCachedProduct } from '@/lib/productCache'
+import { queueClick } from '@/lib/clickQueue'
 import crypto from 'crypto'
+
+// Known bot user-agent patterns for detection
+const BOT_UA_REGEX = /(bot|spider|crawl|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|slackbot|discordbot|bingbot|googlebot|yandex|duckduckbot|baiduspider|curl|wget|python-requests|postmanruntime|httpclient)/i
 
 function getDeviceType(userAgent: string): string {
   const ua = userAgent.toLowerCase()
@@ -41,20 +45,21 @@ export async function GET(
     return new NextResponse('Too many requests', { status: 429, headers: { 'Content-Type': 'text/plain' } })
   }
 
-  // 3. Look up product by slug using SERVER Supabase client
-  // NEVER select('*') on public routes — select only required fields
-  const supabase = createAdminClient()
-  if (!supabase) {
-    return NextResponse.redirect(new URL('/?error=db_unavailable', request.url))
-  }
+  // 3. Lightweight Bot Detection:
+  // - Honeypot param check: bots scraping links often submit dummy hidden query parameters like ?hp=1 or ?bot_trap=...
+  // - User-Agent heuristic analysis
+  const searchParams = request.nextUrl.searchParams
+  const userAgent = request.headers.get('user-agent') || ''
+  const hasHoneypotParam = Boolean(
+    searchParams.get('hp') || searchParams.get('bot') || searchParams.get('utm_term') === 'trap'
+  )
+  const isBotUserAgent = !userAgent || BOT_UA_REGEX.test(userAgent)
+  const isBot = hasHoneypotParam || isBotUserAgent
 
-  const { data: product, error } = await supabase
-    .from('products')
-    .select('id, amazon_url, active')
-    .eq('slug', slug)
-    .single()
+  // 4. Look up product using Upstash Redis Cache Layer (5-min TTL)
+  const product = await getCachedProduct(slug)
 
-  if (error || !product || !product.active) {
+  if (!product || !product.active) {
     return NextResponse.redirect(new URL('/?not_found=1', request.url))
   }
 
@@ -65,10 +70,8 @@ export async function GET(
     return NextResponse.redirect(new URL('/?error=invalid_destination', request.url))
   }
 
-  // 4. Background non-blocking tracking writes:
-  // a) Insert into "clicks" table
-  const searchParams = request.nextUrl.searchParams
-  const userAgent = request.headers.get('user-agent') || ''
+  // 5. Queued Batch Write for Click Tracking:
+  // Pushes into Redis buffer instead of synchronous single-row database insert
   const referrer = request.headers.get('referer') || request.headers.get('referrer') || null
   const country = request.headers.get('cf-ipcountry') || request.headers.get('x-vercel-ip-country') || null
 
@@ -80,39 +83,36 @@ export async function GET(
     utm_campaign: searchParams.get('utm_campaign') || null,
     device: getDeviceType(userAgent),
     country,
+    is_bot: isBot,
   };
 
-  // Fire-and-forget DB write
-  (async () => {
-    try {
-      const { error: insertErr } = await supabase.from('clicks').insert(clickData)
-      if (insertErr) console.error('Error logging click:', insertErr)
-    } catch (err) {
-      console.error('Click tracking error:', err)
-    }
-  })()
+  // Push to queued batch writer asynchronously
+  queueClick(clickData).catch(err => console.error('Click queue push error:', err))
 
-  // b) PostHog server capture with hashed IP
-  const posthog = getPostHogClient()
-  if (posthog) {
-    try {
-      const hashedDistinctId = hashIp(ip)
-      posthog.capture({
-        distinctId: hashedDistinctId,
-        event: 'affiliate_click',
-        properties: {
-          product_id: product.id,
-          slug,
-          device: clickData.device,
-          country: clickData.country,
-        },
-      })
-    } catch (e) {
-      console.error('PostHog capture error:', e)
+  // 6. PostHog server capture with hashed IP (skip known bots to keep analytics pure)
+  if (!isBot) {
+    const posthog = getPostHogClient()
+    if (posthog) {
+      try {
+        const hashedDistinctId = hashIp(ip)
+        posthog.capture({
+          distinctId: hashedDistinctId,
+          event: 'affiliate_click',
+          properties: {
+            product_id: product.id,
+            slug,
+            device: clickData.device,
+            country: clickData.country,
+          },
+        })
+      } catch (e) {
+        console.error('PostHog capture error:', e)
+      }
     }
   }
 
-  // 5. Returns a 302 redirect to product.amazon_url immediately
+  // 7. Returns a 302 redirect to product.amazon_url immediately
   return NextResponse.redirect(product.amazon_url, { status: 302 })
 }
+
 
