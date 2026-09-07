@@ -8,11 +8,11 @@ import { Video, Award, Zap, ShieldCheck } from 'lucide-react'
 export const revalidate = 300
 
 export default async function HomePage() {
-  const supabase = createAdminClient()
   let products: Product[] = []
 
-  if (supabase) {
-    try {
+  try {
+    const supabase = createAdminClient()
+    if (supabase) {
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -25,9 +25,9 @@ export default async function HomePage() {
       } else if (error) {
         console.error('Error fetching products:', error)
       }
-    } catch (e) {
-      console.error('Supabase query failed:', e)
     }
+  } catch (e) {
+    console.warn('HomePage build-time / runtime warning (createAdminClient):', e)
   }
 
   return (

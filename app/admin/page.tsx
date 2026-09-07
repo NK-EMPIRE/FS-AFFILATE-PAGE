@@ -8,13 +8,12 @@ import { Plus, BarChart3, Package } from 'lucide-react'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
-  const supabase = createAdminClient()
-
   let productList: Product[] = []
   let totalClicks = 0
 
-  if (supabase) {
-    try {
+  try {
+    const supabase = createAdminClient()
+    if (supabase) {
       const { data: products } = await supabase
         .from('products')
         .select('*')
@@ -27,9 +26,9 @@ export default async function AdminDashboardPage() {
         .select('*', { count: 'exact', head: true })
 
       if (count) totalClicks = count
-    } catch (e) {
-      console.error('Admin page query error:', e)
     }
+  } catch (e) {
+    console.error('Admin page query error:', e)
   }
 
   return (

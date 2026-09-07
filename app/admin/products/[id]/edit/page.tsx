@@ -11,15 +11,26 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = createAdminClient()
+  let product = null
 
-  const { data: product, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', id)
-    .single()
+  try {
+    const supabase = createAdminClient()
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single()
 
-  if (error || !product) {
+      if (!error && data) {
+        product = data
+      }
+    }
+  } catch (e) {
+    console.error('Error fetching product for edit:', e)
+  }
+
+  if (!product) {
     notFound()
   }
 

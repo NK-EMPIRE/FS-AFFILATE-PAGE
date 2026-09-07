@@ -7,21 +7,20 @@ import { ArrowLeft, BarChart3, TrendingUp, Globe, Smartphone } from 'lucide-reac
 export const dynamic = 'force-dynamic'
 
 export default async function AnalyticsPage() {
-  const supabase = createAdminClient()
-
   let allClicks: any[] = []
 
-  if (supabase) {
-    try {
+  try {
+    const supabase = createAdminClient()
+    if (supabase) {
       const { data: clicks } = await supabase
         .from('clicks')
         .select('id, product_id, referrer, utm_source, utm_medium, utm_campaign, device, country, clicked_at, products(title, slug, price, category)')
         .order('clicked_at', { ascending: false })
 
       if (clicks) allClicks = clicks
-    } catch (e) {
-      console.error('Error fetching analytics clicks:', e)
     }
+  } catch (e) {
+    console.error('Error fetching analytics clicks:', e)
   }
 
   const now = new Date()
