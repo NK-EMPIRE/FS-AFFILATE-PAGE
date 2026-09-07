@@ -12,7 +12,19 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { Smartphone, Monitor, Tablet, Globe, BarChart3, TrendingUp } from 'lucide-react'
+import {
+  Smartphone,
+  Monitor,
+  Tablet,
+  Globe,
+  BarChart3,
+  TrendingUp,
+  Clock,
+  ShieldCheck,
+  Bot,
+  ExternalLink,
+  Users,
+} from 'lucide-react'
 
 interface ClickRecord {
   id: string
@@ -24,6 +36,7 @@ interface ClickRecord {
   device: string | null
   country: string | null
   clicked_at: string
+  is_bot?: boolean
   products: {
     title: string
     slug: string
@@ -33,28 +46,40 @@ interface ClickRecord {
 }
 
 interface Props {
-  clicks: any[]
+  clicks: ClickRecord[]
 }
 
 export default function AnalyticsCharts({ clicks }: Props) {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d')
+  const [botFilter, setBotFilter] = useState<'all' | 'human-only' | 'bots-only'>('human-only')
 
-  const totalClicksAllTime = clicks.length
+  // Total raw clicks
+  const totalRawClicks = clicks.length
+
+  // Filter clicks based on bot selection
+  const botFilteredClicks = useMemo(() => {
+    if (botFilter === 'human-only') {
+      return clicks.filter(c => !c.is_bot)
+    }
+    if (botFilter === 'bots-only') {
+      return clicks.filter(c => !!c.is_bot)
+    }
+    return clicks
+  }, [clicks, botFilter])
 
   // Filter clicks based on time range
   const filteredClicks = useMemo(() => {
-    if (timeRange === 'all') return clicks
+    if (timeRange === 'all') return botFilteredClicks
     const now = new Date()
     const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
     const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
-    return clicks.filter(c => new Date(c.clicked_at) >= cutoff)
-  }, [clicks, timeRange])
+    return botFilteredClicks.filter(c => new Date(c.clicked_at) >= cutoff)
+  }, [botFilteredClicks, timeRange])
 
   // Clicks per day for Line Chart
   const lineChartData = useMemo(() => {
     const countsByDay: Record<string, number> = {}
 
-    // Initialize days
     const daysCount = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 14
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date()
@@ -76,11 +101,28 @@ export default function AnalyticsCharts({ clicks }: Props) {
     }))
   }, [filteredClicks, timeRange])
 
+  // Hourly Distribution (00 to 23 hours in UTC/Local)
+  const hourlyData = useMemo(() => {
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      hour: `${i.toString().padStart(2, '0')}:00`,
+      clicks: 0,
+    }))
+
+    filteredClicks.forEach(c => {
+      const h = new Date(c.clicked_at).getHours()
+      if (hours[h]) {
+        hours[h].clicks += 1
+      }
+    })
+
+    return hours
+  }, [filteredClicks])
+
   // Top 10 products by click count
   const topProductsData = useMemo(() => {
     const map: Record<string, number> = {}
-    clicks.forEach(c => {
-      const title = c.products?.title || 'Unknown Product'
+    filteredClicks.forEach(c => {
+      const title = c.products?.title || 'Unknown Equipment'
       map[title] = (map[title] || 0) + 1
     })
 
@@ -88,16 +130,26 @@ export default function AnalyticsCharts({ clicks }: Props) {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10)
-  }, [clicks])
+  }, [filteredClicks])
 
-  // UTM Source Breakdown
-  const utmSourceData = useMemo(() => {
+  // Referrer & UTM Source Breakdown
+  const referrerData = useMemo(() => {
     const map: Record<string, number> = {}
     const total = filteredClicks.length || 1
 
     filteredClicks.forEach(c => {
-      const src = c.utm_source || 'direct / none'
-      map[src] = (map[src] || 0) + 1
+      let source = 'Direct / App Bio'
+      if (c.utm_source) {
+        source = c.utm_source
+      } else if (c.referrer) {
+        try {
+          const host = new URL(c.referrer).hostname
+          source = host.replace(/^www\./, '')
+        } catch {
+          source = c.referrer.slice(0, 30)
+        }
+      }
+      map[source] = (map[source] || 0) + 1
     })
 
     return Object.entries(map)
@@ -109,7 +161,7 @@ export default function AnalyticsCharts({ clicks }: Props) {
       .sort((a, b) => b.count - a.count)
   }, [filteredClicks])
 
-  // Device & Country breakdown
+  // Device breakdown
   const { deviceStats, topCountries } = useMemo(() => {
     const devMap: Record<string, number> = { mobile: 0, desktop: 0, tablet: 0 }
     const countryMap: Record<string, number> = {}
@@ -120,7 +172,7 @@ export default function AnalyticsCharts({ clicks }: Props) {
       if (dev in devMap) devMap[dev] += 1
       else devMap.desktop += 1
 
-      const ctry = c.country || 'Unknown'
+      const ctry = c.country || 'India'
       countryMap[ctry] = (countryMap[ctry] || 0) + 1
     })
 
@@ -139,13 +191,13 @@ export default function AnalyticsCharts({ clicks }: Props) {
     }
   }, [filteredClicks])
 
-  if (totalClicksAllTime === 0) {
+  if (totalRawClicks === 0) {
     return (
-      <div className="rounded-xl border border-[#262626] bg-[#1A1A1A] p-12 text-center">
+      <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-12 text-center shadow-lg">
         <BarChart3 className="w-10 h-10 text-[#FF6B00] mx-auto mb-3" aria-hidden="true" />
-        <h2 className="text-base font-bold text-white">No Affiliate Click Events Recorded Yet</h2>
-        <p className="mt-1 text-xs text-zinc-400 max-w-md mx-auto">
-          Analytics will populate automatically once visitors start viewing creator gear and following affiliate redirect links (/go/[slug]).
+        <h2 className="text-base font-bold text-white">No Affiliate Redirect Events Recorded Yet</h2>
+        <p className="mt-1.5 text-xs text-zinc-400 max-w-md mx-auto">
+          Analytics will update automatically in real-time as users click "View Deal on Amazon" across your gear recommendations.
         </p>
       </div>
     )
@@ -153,47 +205,94 @@ export default function AnalyticsCharts({ clicks }: Props) {
 
   return (
     <div className="space-y-8">
-      {/* Time Range Selector */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-white">Traffic Trends</h2>
-        <div 
-          role="group"
-          aria-label="Filter analytics by time range"
-          className="flex items-center gap-1.5 rounded-lg border border-[#262626] bg-[#1A1A1A] p-1"
-        >
-          {(['7d', '30d', '90d', 'all'] as const).map(range => (
+      {/* Controls Bar: Time Range & Bot Filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-[#2B2B2B] bg-[#141414] p-3.5 shadow-md">
+        {/* Bot & Audience Filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-zinc-400">Audience:</span>
+          <div className="flex items-center gap-1 rounded-lg bg-[#1F1F1F] p-1 border border-[#2B2B2B]">
             <button
-              key={range}
               type="button"
-              aria-pressed={timeRange === range}
-              onClick={() => setTimeRange(range)}
-              className={`rounded px-3 py-1 text-xs font-semibold uppercase transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF6B00] ${
-                timeRange === range
-                  ? 'bg-[#FF6B00] text-black font-bold'
+              onClick={() => setBotFilter('human-only')}
+              className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-semibold transition ${
+                botFilter === 'human-only'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              {range}
+              <Users className="w-3.5 h-3.5" />
+              <span>Real Humans</span>
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setBotFilter('all')}
+              className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-semibold transition ${
+                botFilter === 'all'
+                  ? 'bg-[#FF6B00]/20 text-[#FF9A3C] border border-[#FF6B00]/40'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>All Traffic</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setBotFilter('bots-only')}
+              className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-semibold transition ${
+                botFilter === 'bots-only'
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Bot className="w-3.5 h-3.5" />
+              <span>Bots & Crawlers</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Time Window Tabs */}
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <span className="text-xs font-semibold text-zinc-400">Window:</span>
+          <div className="flex items-center gap-1 rounded-lg bg-[#1F1F1F] p-1 border border-[#2B2B2B]">
+            {(['7d', '30d', '90d', 'all'] as const).map(range => (
+              <button
+                key={range}
+                type="button"
+                onClick={() => setTimeRange(range)}
+                className={`rounded px-3 py-1 text-xs font-bold uppercase transition ${
+                  timeRange === range
+                    ? 'bg-[#FF6B00] text-black shadow'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Charts Grid */}
+      {/* Main Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Line Chart */}
-        <div className="rounded-xl border border-[#262626] bg-[#1A1A1A] p-5">
-          <h3 className="text-sm font-semibold text-zinc-200 mb-4">
-            Daily Click Volume ({timeRange.toUpperCase()})
-          </h3>
+        {/* Daily Volume Line Chart */}
+        <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-[#FF6B00]" />
+              <span>Daily Click Volume ({timeRange.toUpperCase()})</span>
+            </h3>
+            <span className="text-xs text-[#FF9A3C] font-semibold font-mono">
+              {filteredClicks.length} Clicks
+            </span>
+          </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#242424" />
                 <XAxis dataKey="date" stroke="#71717a" fontSize={11} />
                 <YAxis stroke="#71717a" fontSize={11} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#262626', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#333', borderRadius: '10px' }}
                 />
                 <Line
                   type="monotone"
@@ -208,93 +307,102 @@ export default function AnalyticsCharts({ clicks }: Props) {
           </div>
         </div>
 
-        {/* Bar Chart */}
-        <div className="rounded-xl border border-[#262626] bg-[#1A1A1A] p-5">
-          <h3 className="text-sm font-semibold text-zinc-200 mb-4">
-            Top 10 Products by Clicks (All-Time)
-          </h3>
+        {/* Peak Hours Histogram */}
+        <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#FF9A3C]" />
+              <span>Hourly Traffic Distribution (24-Hour Peak)</span>
+            </h3>
+            <span className="text-xs text-zinc-400">Audience Peak Times</span>
+          </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topProductsData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-                <XAxis type="number" stroke="#71717a" fontSize={11} allowDecimals={false} />
-                <YAxis dataKey="name" type="category" width={110} stroke="#71717a" fontSize={10} />
+              <BarChart data={hourlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#242424" />
+                <XAxis dataKey="hour" stroke="#71717a" fontSize={10} interval={3} />
+                <YAxis stroke="#71717a" fontSize={11} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#262626', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#333', borderRadius: '10px' }}
                 />
-                <Bar dataKey="count" fill="#FF9A3C" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="clicks" fill="#FF8533" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Breakdowns: UTM Source & Devices */}
+      {/* Product Leaderboard & Traffic Source */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* UTM Source Table */}
-        <div className="rounded-xl border border-[#262626] bg-[#1A1A1A] p-5">
-          <h3 className="text-sm font-semibold text-zinc-200 mb-3">
-            Traffic by UTM Source
+        {/* Top 10 Equipment Leaderboard */}
+        <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg">
+          <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-[#FF6B00]" />
+            <span>Top Gear Recommendations by Clicks</span>
           </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-zinc-500 border-b border-[#262626]">
-                <tr>
-                  <th className="pb-2">Source</th>
-                  <th className="pb-2">Clicks</th>
-                  <th className="pb-2 text-right">Share</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#262626]">
-                {utmSourceData.map((row, i) => (
-                  <tr key={i} className="text-zinc-300">
-                    <td className="py-2 font-mono text-[#FFE0C2]">{row.source}</td>
-                    <td className="py-2">{row.count}</td>
-                    <td className="py-2 text-right font-medium text-white">{row.percentage}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topProductsData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#242424" />
+                <XAxis type="number" stroke="#71717a" fontSize={11} allowDecimals={false} />
+                <YAxis dataKey="name" type="category" width={115} stroke="#71717a" fontSize={10} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#333', borderRadius: '10px' }}
+                />
+                <Bar dataKey="count" fill="#FF6B00" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Device & Country Breakdown */}
-        <div className="rounded-xl border border-[#262626] bg-[#1A1A1A] p-5 space-y-6">
+        {/* Traffic Source & Referrers */}
+        <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg flex flex-col justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-200 mb-3">Device Breakdown</h3>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg bg-[#0A0A0A] border border-[#262626] p-3 text-center">
-                <Smartphone className="w-4 h-4 mx-auto text-[#FF6B00] mb-1" aria-hidden="true" />
-                <div className="text-xs text-zinc-400">Mobile</div>
-                <div className="text-sm font-bold text-white mt-0.5">{deviceStats.mobile}%</div>
-              </div>
-              <div className="rounded-lg bg-[#0A0A0A] border border-[#262626] p-3 text-center">
-                <Monitor className="w-4 h-4 mx-auto text-[#FF9A3C] mb-1" aria-hidden="true" />
-                <div className="text-xs text-zinc-400">Desktop</div>
-                <div className="text-sm font-bold text-white mt-0.5">{deviceStats.desktop}%</div>
-              </div>
-              <div className="rounded-lg bg-[#0A0A0A] border border-[#262626] p-3 text-center">
-                <Tablet className="w-4 h-4 mx-auto text-zinc-400 mb-1" aria-hidden="true" />
-                <div className="text-xs text-zinc-400">Tablet</div>
-                <div className="text-sm font-bold text-white mt-0.5">{deviceStats.tablet}%</div>
-              </div>
+            <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-emerald-400" />
+              <span>Audience Origin & Channels</span>
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="text-zinc-500 border-b border-[#242424]">
+                  <tr>
+                    <th className="pb-2">Channel / Referrer</th>
+                    <th className="pb-2">Clicks</th>
+                    <th className="pb-2 text-right">Share</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#242424]">
+                  {referrerData.slice(0, 7).map((row, i) => (
+                    <tr key={i} className="text-zinc-300">
+                      <td className="py-2.5 font-mono text-[#FFE0C2] truncate max-w-[180px]">{row.source}</td>
+                      <td className="py-2.5 font-semibold">{row.count}</td>
+                      <td className="py-2.5 text-right font-bold text-white">{row.percentage}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-200 mb-2">Top Countries</h3>
-            {topCountries.length > 0 ? (
-              <div className="space-y-1.5">
-                {topCountries.map((c, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs py-1 px-2 rounded bg-[#0A0A0A]">
-                    <span className="text-zinc-300">{c.country}</span>
-                    <span className="font-semibold text-[#FF9A3C]">{c.count} clicks</span>
-                  </div>
-                ))}
+          {/* Device Breakdown Stats */}
+          <div className="pt-4 border-t border-[#242424] mt-4">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-[#1A1A1A] border border-[#2E2E2E] p-3 text-center">
+                <Smartphone className="w-4 h-4 mx-auto text-[#FF6B00] mb-1" />
+                <div className="text-[11px] text-zinc-400">Mobile</div>
+                <div className="text-sm font-extrabold text-white mt-0.5">{deviceStats.mobile}%</div>
               </div>
-            ) : (
-              <p className="text-xs text-zinc-500">No geo data recorded yet.</p>
-            )}
+              <div className="rounded-xl bg-[#1A1A1A] border border-[#2E2E2E] p-3 text-center">
+                <Monitor className="w-4 h-4 mx-auto text-[#FF9A3C] mb-1" />
+                <div className="text-[11px] text-zinc-400">Desktop</div>
+                <div className="text-sm font-extrabold text-white mt-0.5">{deviceStats.desktop}%</div>
+              </div>
+              <div className="rounded-xl bg-[#1A1A1A] border border-[#2E2E2E] p-3 text-center">
+                <Tablet className="w-4 h-4 mx-auto text-zinc-400 mb-1" />
+                <div className="text-[11px] text-zinc-400">Tablet</div>
+                <div className="text-sm font-extrabold text-white mt-0.5">{deviceStats.tablet}%</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

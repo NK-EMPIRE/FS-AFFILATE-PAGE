@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Product, ProductSchema } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import imageCompression from 'browser-image-compression'
-import { ArrowLeft, Save, Upload, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Save, Upload, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -28,8 +28,55 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
   const [active, setActive] = useState(initialData?.active ?? true)
 
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [fetchingAmazon, setFetchingAmazon] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [autoFetchSuccess, setAutoFetchSuccess] = useState(false)
+
+  // 1-Click Amazon Scraping Automation
+  const handleAutoFetchAmazon = async (targetUrl?: string) => {
+    const urlToFetch = targetUrl || amazonUrl
+    if (!urlToFetch) return
+
+    setFetchingAmazon(true)
+    setAutoFetchSuccess(false)
+    try {
+      const res = await fetch('/api/admin/scrape-amazon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlToFetch }),
+      })
+
+      const data = await res.json()
+      if (res.ok && data.success && data.data) {
+        const item = data.data
+        if (item.title && (!title || title.length < 5)) {
+          setTitle(item.title)
+        }
+        if (item.slug && !slug) {
+          setSlug(item.slug)
+        }
+        if (item.price && !price) {
+          setPrice(item.price.toString())
+        }
+        if (item.image_url) {
+          setImageUrl(item.image_url)
+        }
+        if (item.category && category === 'Camera') {
+          setCategory(item.category)
+        }
+        setAutoFetchSuccess(true)
+        setTimeout(() => setAutoFetchSuccess(false), 4000)
+      } else {
+        alert(data.error || 'Could not auto-fetch Amazon details. You can enter them manually.')
+      }
+    } catch (err: any) {
+      console.error('Auto-fetch error:', err)
+      alert('Failed to connect to Amazon auto-fetch service: ' + err.message)
+    } finally {
+      setFetchingAmazon(false)
+    }
+  }
 
   // Auto-slugify from title on blur if slug is empty
   const handleTitleBlur = () => {
@@ -256,11 +303,31 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
           </div>
         </div>
 
-        {/* Amazon Affiliate URL */}
+        {/* Amazon Affiliate URL with 1-Click Auto-Fetch */}
         <div>
-          <label htmlFor="product-amazon-url" className="block text-xs font-semibold text-zinc-300 mb-1">
-            Amazon Destination URL <span className="text-[#FF6B00]" aria-hidden="true">*</span>
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="product-amazon-url" className="block text-xs font-semibold text-zinc-300">
+              Amazon Destination URL <span className="text-[#FF6B00]" aria-hidden="true">*</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => handleAutoFetchAmazon(amazonUrl)}
+              disabled={fetchingAmazon || !amazonUrl}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#FF6B00]/40 bg-[#FF6B00]/10 px-2.5 py-1 text-[11px] font-bold text-[#FF9A3C] hover:bg-[#FF6B00] hover:text-black transition disabled:opacity-40 disabled:pointer-events-none"
+            >
+              {fetchingAmazon ? (
+                <>
+                  <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span>Fetching Details...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3 h-3" />
+                  <span>Auto-Fetch Title, Image & Price</span>
+                </>
+              )}
+            </button>
+          </div>
           <input
             id="product-amazon-url"
             type="url"
@@ -270,23 +337,32 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
             aria-describedby={errors.amazon_url ? 'amazon-url-error' : undefined}
             value={amazonUrl}
             onChange={e => setAmazonUrl(e.target.value)}
-            placeholder="https://link.amazon/B0cgLebXO or https://www.amazon.in/dp/..."
+            onPaste={e => {
+              const pastedText = e.clipboardData.getData('text')
+              if (pastedText && (pastedText.includes('amazon') || pastedText.includes('amzlinks') || pastedText.includes('amzn.to'))) {
+                setTimeout(() => handleAutoFetchAmazon(pastedText), 100)
+              }
+            }}
+            placeholder="https://link.amazon/B0hxg02gv or https://www.amazon.in/dp/..."
             className="w-full rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/40 focus:outline-none transition"
           />
           {errors.amazon_url && <p id="amazon-url-error" className="mt-1 text-xs text-red-400" role="alert">{errors.amazon_url}</p>}
+          <p className="mt-1 text-[11px] text-zinc-500">
+            Paste any Amazon or link.amazon URL and click Auto-Fetch to automatically extract the high-res image, price, title, and slug.
+          </p>
         </div>
 
         {/* Image Upload / URL */}
         <div>
           <label className="block text-xs font-semibold text-zinc-300 mb-1">
-            Product Image (Upload or direct URL)
+            Product Image (Auto-populated or upload/paste)
           </label>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="url"
               value={imageUrl}
               onChange={e => setImageUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/..."
+              placeholder="https://m.media-amazon.com/images/..."
               className="flex-1 rounded-lg bg-[#0A0A0A] border border-[#262626] px-3.5 py-2 text-sm text-white focus:border-[#FF6B00] focus:outline-none"
             />
             <label className="flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-[#262626] bg-[#262626] px-4 py-2 text-xs font-semibold text-zinc-200 hover:text-white hover:border-[#FF6B00] transition">

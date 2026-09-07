@@ -71,12 +71,6 @@ export default function RootLayout({
                 >
                   Disclosure
                 </Link>
-                <Link
-                  href="/admin"
-                  className="rounded-lg border border-[#262626] bg-[#1A1A1A] px-3.5 py-1.5 text-xs font-semibold text-[#FFE0C2] hover:border-[#FF6B00] hover:text-[#FF6B00] transition"
-                >
-                  Admin Portal
-                </Link>
               </div>
             </div>
           </header>
@@ -101,9 +95,6 @@ export default function RootLayout({
                   </Link>
                   <Link href="/disclosure" className="hover:text-zinc-300 transition">
                     FTC Compliance
-                  </Link>
-                  <Link href="/admin" className="hover:text-[#FF6B00] transition">
-                    Admin
                   </Link>
                 </div>
               </div>
