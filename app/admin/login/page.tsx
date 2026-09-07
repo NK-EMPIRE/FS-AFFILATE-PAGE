@@ -7,8 +7,8 @@ import { Lock, Mail, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import FirstSelfieLogo from '@/components/Logo'
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('firstselfie.official@gmail.com')
-  const [password, setPassword] = useState('FirstSelfie2026!')
+  const [email, setEmail] = useState(process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'firstselfie.official@gmail.com')
+  const [password, setPassword] = useState(process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'FirstSelfie2026!')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
