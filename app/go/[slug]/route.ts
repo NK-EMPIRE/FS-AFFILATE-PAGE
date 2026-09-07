@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { getPostHogClient } from '@/lib/posthog'
 import { SlugSchema } from '@/lib/types'
+import crypto from 'crypto'
 
 function getDeviceType(userAgent: string): string {
   const ua = userAgent.toLowerCase()
@@ -13,6 +14,11 @@ function getDeviceType(userAgent: string): string {
     return 'mobile'
   }
   return 'desktop'
+}
+
+function hashIp(ip: string): string {
+  const salt = process.env.IP_SALT || 'firstselfie_analytics_salt'
+  return crypto.createHash('sha256').update(`${ip}:${salt}`).digest('hex')
 }
 
 export async function GET(
@@ -27,7 +33,7 @@ export async function GET(
     return NextResponse.redirect(new URL('/?not_found=invalid_slug', request.url))
   }
 
-  // 2. Rate-limits by IP: max 20 requests/minute per IP+slug combo
+  // 2. Rate-limits: max 20 requests/minute per IP+slug, secondary global slug limit
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1'
   const rateLimitResult = await checkRateLimit(ip, slug)
 
@@ -36,6 +42,7 @@ export async function GET(
   }
 
   // 3. Look up product by slug using SERVER Supabase client
+  // NEVER select('*') on public routes — select only required fields
   const supabase = createAdminClient()
   if (!supabase) {
     return NextResponse.redirect(new URL('/?error=db_unavailable', request.url))
@@ -43,12 +50,19 @@ export async function GET(
 
   const { data: product, error } = await supabase
     .from('products')
-    .select('*')
+    .select('id, amazon_url, active')
     .eq('slug', slug)
     .single()
 
   if (error || !product || !product.active) {
     return NextResponse.redirect(new URL('/?not_found=1', request.url))
+  }
+
+  // Defense in depth: validate amazon_url against expected pattern before redirecting
+  const amazonUrlPattern = /^https:\/\/(www\.)?amazon\.[a-z.]+\/|^https:\/\/link\.amazon\//
+  if (!amazonUrlPattern.test(product.amazon_url)) {
+    console.error(`Security alert: invalid or manipulated destination URL for slug ${slug}:`, product.amazon_url)
+    return NextResponse.redirect(new URL('/?error=invalid_destination', request.url))
   }
 
   // 4. Background non-blocking tracking writes:
@@ -78,18 +92,17 @@ export async function GET(
     }
   })()
 
-  // b) PostHog server capture
+  // b) PostHog server capture with hashed IP
   const posthog = getPostHogClient()
   if (posthog) {
     try {
+      const hashedDistinctId = hashIp(ip)
       posthog.capture({
-        distinctId: ip,
+        distinctId: hashedDistinctId,
         event: 'affiliate_click',
         properties: {
           product_id: product.id,
-          slug: product.slug,
-          price: product.price,
-          category: product.category,
+          slug,
           device: clickData.device,
           country: clickData.country,
         },
@@ -102,3 +115,4 @@ export async function GET(
   // 5. Returns a 302 redirect to product.amazon_url immediately
   return NextResponse.redirect(product.amazon_url, { status: 302 })
 }
+

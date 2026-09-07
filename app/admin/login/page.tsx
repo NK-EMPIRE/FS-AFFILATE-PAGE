@@ -22,27 +22,18 @@ export default function AdminLoginPage() {
     setErrorMsg(null)
 
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       })
 
-      if (error) {
-        setErrorMsg(error.message)
-        setLoading(false)
-        return
-      }
+      const data = await res.json()
 
-      // Check admin status
-      const { data: adminRecord } = await supabase
-        .from('admins')
-        .select('id')
-        .eq('id', data.user.id)
-        .single()
-
-      if (!adminRecord) {
-        setErrorMsg('Authentication successful, but this account is not in the admins table.')
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Authentication failed.')
         setLoading(false)
         return
       }
@@ -50,7 +41,7 @@ export default function AdminLoginPage() {
       router.push('/admin')
       router.refresh()
     } catch (err: any) {
-      setErrorMsg(err?.message || 'Login failed')
+      setErrorMsg(err?.message || 'Login failed. Please try again.')
       setLoading(false)
     }
   }

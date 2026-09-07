@@ -32,11 +32,14 @@ export async function createServerClientWithAuth() {
 // Service role client for privileged server operations (bypass RLS)
 export function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    console.warn('Supabase URL or Key missing from environment variables!')
-    return null as any
+  if (!supabaseUrl) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is required for createAdminClient')
+  }
+
+  if (!serviceRoleKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for createAdminClient. Anon-key fallback is forbidden in production.')
   }
 
   return createSupabaseClient(supabaseUrl, serviceRoleKey, {
