@@ -2,13 +2,14 @@ import React from 'react'
 import { createAdminClient } from '@/lib/supabase/server'
 import ProductFilters from '@/components/ProductFilters'
 import { Product } from '@/lib/types'
+import { FALLBACK_PRODUCTS } from '@/lib/initialData'
 import { Video, Award, Zap, ShieldCheck } from 'lucide-react'
 
 // Incremental Static Regeneration (ISR) with 5-minute cache window
 export const revalidate = 300
 
 export default async function HomePage() {
-  let products: Product[] = []
+  let products: Product[] = FALLBACK_PRODUCTS
 
   try {
     const supabase = createAdminClient()
@@ -20,10 +21,8 @@ export default async function HomePage() {
         .order('featured', { ascending: false })
         .order('created_at', { ascending: false })
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         products = data
-      } else if (error) {
-        console.error('Error fetching products:', error)
       }
     }
   } catch (e) {

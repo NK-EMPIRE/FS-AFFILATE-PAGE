@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { Product } from '@/lib/types'
+import { FALLBACK_PRODUCTS } from '@/lib/initialData'
 import ProductCard from './ProductCard'
 import { Search, SlidersHorizontal } from 'lucide-react'
 
@@ -10,7 +11,9 @@ interface ProductFiltersProps {
 }
 
 export default function ProductFilters({ initialProducts }: ProductFiltersProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [products, setProducts] = useState<Product[]>(
+    initialProducts && initialProducts.length > 0 ? initialProducts : FALLBACK_PRODUCTS
+  )
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
 
