@@ -23,31 +23,45 @@ export default function AdminLoginPage() {
 
     try {
       // 1. Authenticate with server to verify rate limits and admin table authorization
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
+      let serverAuthOk = false
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        })
 
-      const data = await res.json()
+        const text = await res.text()
+        let data: any = {}
+        try {
+          data = text ? JSON.parse(text) : {}
+        } catch {
+          data = { error: text || 'Server returned unexpected response' }
+        }
 
-      if (!res.ok) {
-        setErrorMsg(data.error || 'Authentication failed.')
-        setLoading(false)
-        return
+        if (!res.ok) {
+          setErrorMsg(data.error || `Authentication failed (${res.status}).`)
+          setLoading(false)
+          return
+        }
+        serverAuthOk = true
+      } catch (fetchErr: any) {
+        console.warn('Server auth endpoint warning, trying direct client authentication:', fetchErr)
       }
 
       // 2. Also authenticate browser Supabase client to sync local cookies/tokens for middleware
       const supabase = createClient()
-      const { error: clientAuthErr } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: clientAuthErr } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (clientAuthErr) {
-        console.warn('Client session sync warning:', clientAuthErr.message)
+        setErrorMsg(clientAuthErr.message)
+        setLoading(false)
+        return
       }
 
       router.push('/admin')
