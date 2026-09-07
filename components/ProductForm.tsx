@@ -50,19 +50,20 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
       const data = await res.json()
       if (res.ok && data.success && data.data) {
         const item = data.data
-        if (item.title && (!title || title.length < 5)) {
+        // Always populate title if empty, short, or was previously an error message
+        if (item.title && (!title || title.length < 5 || title.includes('503') || title.includes('Service Unavailable'))) {
           setTitle(item.title)
         }
-        if (item.slug && !slug) {
+        if (item.slug && (!slug || slug.includes('503') || slug.includes('service-unavailable'))) {
           setSlug(item.slug)
         }
-        if (item.price && !price) {
+        if (item.price) {
           setPrice(item.price.toString())
         }
         if (item.image_url) {
           setImageUrl(item.image_url)
         }
-        if (item.category && category === 'Camera') {
+        if (item.category) {
           setCategory(item.category)
         }
         setAutoFetchSuccess(true)
