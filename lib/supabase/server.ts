@@ -5,10 +5,16 @@ import { cookies } from 'next/headers'
 // Client with user cookies for auth context & RLS
 export async function createServerClientWithAuth() {
   const cookieStore = await cookies()
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !anon) {
+    throw new Error('Supabase credentials missing in server context.')
+  }
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anon,
     {
       cookies: {
         getAll() {
@@ -21,7 +27,6 @@ export async function createServerClientWithAuth() {
             )
           } catch {
             // The setAll method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing user sessions.
           }
         },
       },
@@ -34,12 +39,8 @@ export function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!supabaseUrl) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_URL is required for createAdminClient')
-  }
-
-  if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for createAdminClient. Anon-key fallback is forbidden in production.')
+  if (!supabaseUrl || !serviceRoleKey) {
+    return null as any
   }
 
   return createSupabaseClient(supabaseUrl, serviceRoleKey, {
