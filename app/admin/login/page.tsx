@@ -22,6 +22,7 @@ export default function AdminLoginPage() {
     setErrorMsg(null)
 
     try {
+      // 1. Authenticate with server to verify rate limits and admin table authorization
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -36,6 +37,17 @@ export default function AdminLoginPage() {
         setErrorMsg(data.error || 'Authentication failed.')
         setLoading(false)
         return
+      }
+
+      // 2. Also authenticate browser Supabase client to sync local cookies/tokens for middleware
+      const supabase = createClient()
+      const { error: clientAuthErr } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (clientAuthErr) {
+        console.warn('Client session sync warning:', clientAuthErr.message)
       }
 
       router.push('/admin')

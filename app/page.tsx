@@ -62,6 +62,34 @@ export default async function HomePage() {
             <span>4K Live & Cinema Ready</span>
           </div>
         </div>
+
+        {/* Mandatory Course Equipment Checklist */}
+        <div className="mt-8 mx-auto max-w-4xl rounded-xl border border-[#262626] bg-[#141414]/90 p-4 text-left shadow-lg">
+          <div className="flex items-center gap-2 mb-2 text-[#FF9A3C] font-semibold text-xs tracking-wider uppercase">
+            <Zap className="w-3.5 h-3.5" />
+            <span>Mandatory Setup Checklist for Creators:</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs">
+            <div className="rounded-lg bg-[#1F1F1F] px-2.5 py-1.5 text-zinc-200 border border-[#2A2A2A] flex items-center gap-1.5">
+              <span className="text-[#FF6B00] font-bold">✓</span> Camera / Phone (1)
+            </div>
+            <div className="rounded-lg bg-[#1F1F1F] px-2.5 py-1.5 text-zinc-200 border border-[#2A2A2A] flex items-center gap-1.5">
+              <span className="text-[#FF6B00] font-bold">✓</span> Camera Stand (1)
+            </div>
+            <div className="rounded-lg bg-[#1F1F1F] px-2.5 py-1.5 text-zinc-200 border border-[#2A2A2A] flex items-center gap-1.5">
+              <span className="text-[#FF6B00] font-bold">✓</span> Microphone (1)
+            </div>
+            <div className="rounded-lg bg-[#1F1F1F] px-2.5 py-1.5 text-zinc-200 border border-[#2A2A2A] flex items-center gap-1.5">
+              <span className="text-[#FF6B00] font-bold">✓</span> Lights Key+Fill (2)
+            </div>
+            <div className="rounded-lg bg-[#1F1F1F] px-2.5 py-1.5 text-zinc-200 border border-[#2A2A2A] flex items-center gap-1.5">
+              <span className="text-[#FF6B00] font-bold">✓</span> Light Stands (2)
+            </div>
+            <div className="rounded-lg bg-[#1F1F1F] px-2.5 py-1.5 text-zinc-200 border border-[#2A2A2A] flex items-center gap-1.5">
+              <span className="text-[#FF6B00] font-bold">✓</span> SD Card V30 (1)
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Main Filterable Product Showcase */}
