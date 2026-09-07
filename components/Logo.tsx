@@ -6,12 +6,14 @@ interface LogoProps {
   className?: string
   size?: 'sm' | 'md' | 'lg'
   variant?: 'primary' | 'secondary'
+  href?: string
 }
 
 export default function FirstSelfieLogo({
   className = '',
   size = 'md',
   variant = 'secondary',
+  href = '/',
 }: LogoProps) {
   const dimensions = {
     sm: { height: 42, width: 160 },
@@ -23,7 +25,7 @@ export default function FirstSelfieLogo({
   const { height, width } = dimensions[size]
 
   return (
-    <Link href="/" className={`inline-flex items-center gap-2 select-none group ${className}`}>
+    <Link href={href} className={`inline-flex items-center gap-2 select-none group ${className}`}>
       <div className="relative flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.02]">
         <Image
           src={logoSrc}

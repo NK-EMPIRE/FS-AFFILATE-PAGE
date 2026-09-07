@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
     setErrorMsg(null)
 
     try {
-      // 1. Authenticate with server to verify rate limits and admin table authorization
+      // 1. Try server-side authentication route (with rate-limiting and audit log)
       let serverAuthOk = false
       try {
         const res = await fetch('/api/auth/login', {
@@ -33,25 +33,28 @@ export default function AdminLoginPage() {
           body: JSON.stringify({ email, password }),
         })
 
-        const text = await res.text()
-        let data: any = {}
-        try {
-          data = text ? JSON.parse(text) : {}
-        } catch {
-          data = { error: text || 'Server returned unexpected response' }
+        if (res.ok) {
+          serverAuthOk = true
+        } else {
+          const text = await res.text()
+          let data: any = {}
+          try {
+            data = text ? JSON.parse(text) : {}
+          } catch {
+            data = { error: text }
+          }
+          // If explicitly rate-limited or invalid credentials, display that directly
+          if (res.status === 429 || res.status === 401 || res.status === 403) {
+            setErrorMsg(data.error || 'Invalid credentials or unauthorized.')
+            setLoading(false)
+            return
+          }
         }
-
-        if (!res.ok) {
-          setErrorMsg(data.error || `Authentication failed (${res.status}).`)
-          setLoading(false)
-          return
-        }
-        serverAuthOk = true
-      } catch (fetchErr: any) {
-        console.warn('Server auth endpoint warning, trying direct client authentication:', fetchErr)
+      } catch (fetchErr) {
+        console.warn('Server auth route unreachable, proceeding to direct client fallback:', fetchErr)
       }
 
-      // 2. Also authenticate browser Supabase client to sync local cookies/tokens for middleware
+      // 2. Direct client session authentication to ensure browser cookies are set
       const supabase = createClient()
       const { data: authData, error: clientAuthErr } = await supabase.auth.signInWithPassword({
         email,
@@ -60,6 +63,20 @@ export default function AdminLoginPage() {
 
       if (clientAuthErr) {
         setErrorMsg(clientAuthErr.message)
+        setLoading(false)
+        return
+      }
+
+      // 3. Verify user is in admins table
+      const { data: adminCheck, error: adminErr } = await supabase
+        .from('admins')
+        .select('id')
+        .eq('id', authData.user.id)
+        .single()
+
+      if (adminErr || !adminCheck) {
+        await supabase.auth.signOut()
+        setErrorMsg('Unauthorized: This account is not registered in the admin roster.')
         setLoading(false)
         return
       }

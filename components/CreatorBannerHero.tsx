@@ -6,34 +6,34 @@ import { YouTubeIcon, InstagramIcon, WhatsAppIcon } from './SocialIcons'
 export default function CreatorBannerHero() {
   return (
     <section className="relative mb-10 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#111113] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
-      {/* 1. Full-Width YouTube Channel Header Banner */}
-      <div className="relative aspect-[16/7] sm:aspect-[16/6] md:aspect-[21/7] w-full overflow-hidden bg-zinc-950">
+      {/* 1. YouTube Channel Header Banner - Natural aspect ratio (1707x282 ~ 6:1 on desktop, 16:6 on mobile) */}
+      <div className="relative w-full aspect-[16/6] sm:aspect-[1707/282] overflow-hidden bg-zinc-950">
         <Image
           src="/fs-banner-yt.jpg"
           alt="FirstSelfie Channel Banner"
           fill
           priority
-          className="object-cover object-center"
+          className="object-contain sm:object-cover object-center"
           sizes="(max-width: 1280px) 100vw, 1280px"
         />
-        {/* Subtle, crisp gradient overlay strictly at the bottom edge for readability */}
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#111113] to-transparent pointer-events-none" />
+        {/* Crisp, delicate bottom edge line */}
+        <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#111113] to-transparent pointer-events-none" />
       </div>
 
       {/* 2. Creator Identity Stage (Avatar, Name, Verified Blue Tick & Social Links) */}
-      <div className="relative px-5 sm:px-8 pb-8 pt-0 -mt-14 sm:-mt-16 md:-mt-20">
+      <div className="relative px-4 sm:px-8 pb-8 pt-3 sm:pt-4">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
           {/* Avatar and Creator Info */}
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6 text-center sm:text-left">
             {/* Profile Avatar with Glowing Border */}
-            <div className="relative h-28 w-28 sm:h-36 sm:w-36 rounded-2xl overflow-hidden border-4 border-[#111113] bg-zinc-900 shadow-2xl shrink-0 ring-2 ring-[#FF6B00]/40">
+            <div className="relative h-20 w-20 sm:h-28 sm:w-28 rounded-2xl overflow-hidden border-2 sm:border-4 border-[#111113] bg-zinc-900 shadow-2xl shrink-0 ring-2 ring-[#FF6B00]/40 -mt-10 sm:-mt-14 z-10">
               <Image
                 src="/profile-fs.jpg"
                 alt="FirstSelfie Profile"
                 fill
                 priority
                 className="object-cover"
-                sizes="144px"
+                sizes="112px"
               />
             </div>
 

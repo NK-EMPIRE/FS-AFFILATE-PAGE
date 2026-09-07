@@ -6,12 +6,6 @@ export default function CommunitySection() {
   return (
     <section className="mt-16 sm:mt-20 pt-10 border-t border-white/[0.08]">
       <div className="text-center max-w-2xl mx-auto mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-3.5 py-1 text-[11px] font-medium text-zinc-400 mb-3">
-          <Sparkles className="w-3.5 h-3.5 text-[#FF6B00]" />
-          <span className="font-mono text-[10px] tracking-wider uppercase text-zinc-300">
-            Connect & Grow With Us
-          </span>
-        </div>
         <h2 className="font-hero text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
           Join the FirstSelfie Creator Community
         </h2>
