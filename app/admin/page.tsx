@@ -10,16 +10,27 @@ export const dynamic = 'force-dynamic'
 export default async function AdminDashboardPage() {
   const supabase = createAdminClient()
 
-  const { data: products } = await supabase
-    .from('products')
-    .select('*')
-    .order('created_at', { ascending: false })
+  let productList: Product[] = []
+  let totalClicks = 0
 
-  const { count: totalClicks } = await supabase
-    .from('clicks')
-    .select('*', { count: 'exact', head: true })
+  if (supabase) {
+    try {
+      const { data: products } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-  const productList: Product[] = products || []
+      if (products) productList = products
+
+      const { count } = await supabase
+        .from('clicks')
+        .select('*', { count: 'exact', head: true })
+
+      if (count) totalClicks = count
+    } catch (e) {
+      console.error('Admin page query error:', e)
+    }
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">

@@ -8,16 +8,26 @@ export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   const supabase = createAdminClient()
+  let products: Product[] = []
 
-  // Fetch all active products ordered by featured desc, then created_at desc
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('active', true)
-    .order('featured', { ascending: false })
-    .order('created_at', { ascending: false })
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('active', true)
+        .order('featured', { ascending: false })
+        .order('created_at', { ascending: false })
 
-  const products: Product[] = data || []
+      if (!error && data) {
+        products = data
+      } else if (error) {
+        console.error('Error fetching products:', error)
+      }
+    } catch (e) {
+      console.error('Supabase query failed:', e)
+    }
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">

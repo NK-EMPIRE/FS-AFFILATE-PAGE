@@ -9,13 +9,20 @@ export const dynamic = 'force-dynamic'
 export default async function AnalyticsPage() {
   const supabase = createAdminClient()
 
-  // Server fetch from clicks joined to products
-  const { data: clicks } = await supabase
-    .from('clicks')
-    .select('id, product_id, referrer, utm_source, utm_medium, utm_campaign, device, country, clicked_at, products(title, slug, price, category)')
-    .order('clicked_at', { ascending: false })
+  let allClicks: any[] = []
 
-  const allClicks = clicks || []
+  if (supabase) {
+    try {
+      const { data: clicks } = await supabase
+        .from('clicks')
+        .select('id, product_id, referrer, utm_source, utm_medium, utm_campaign, device, country, clicked_at, products(title, slug, price, category)')
+        .order('clicked_at', { ascending: false })
+
+      if (clicks) allClicks = clicks
+    } catch (e) {
+      console.error('Error fetching analytics clicks:', e)
+    }
+  }
 
   const now = new Date()
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)

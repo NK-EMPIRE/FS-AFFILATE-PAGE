@@ -37,6 +37,10 @@ export async function GET(
 
   // 3. Look up product by slug using SERVER Supabase client
   const supabase = createAdminClient()
+  if (!supabase) {
+    return NextResponse.redirect(new URL('/?error=db_unavailable', request.url))
+  }
+
   const { data: product, error } = await supabase
     .from('products')
     .select('*')
