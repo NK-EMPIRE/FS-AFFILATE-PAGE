@@ -34,15 +34,16 @@ export default async function HomePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'FirstSelfie Creator Studio Storefront',
-    url: 'https://firstselfie.com',
-    description: 'Creator equipment, 4K camera gear, lighting and studio production stack.',
+    name: 'FirstSelfie Gadgets — Creator Equipment & Studio Stack',
+    url: 'https://gadgets.firstselfie.in',
+    description: 'Creator equipment, 4K cameras, wireless microphones, softbox lighting, and studio gear tested by FirstSelfie.',
     publisher: {
       '@type': 'Organization',
       name: 'FirstSelfie',
+      url: 'https://gadgets.firstselfie.in',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://firstselfie.com/logo-primary.png',
+        url: 'https://gadgets.firstselfie.in/icon.png',
       },
       sameAs: [
         'https://www.youtube.com/@firstselfietamil',

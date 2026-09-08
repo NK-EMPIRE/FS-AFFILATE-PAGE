@@ -70,8 +70,14 @@ export async function GET(
     return NextResponse.redirect(new URL('/?error=invalid_destination', request.url))
   }
 
-  // 5. Queued Batch Write for Click Tracking:
-  // Pushes into Redis buffer instead of synchronous single-row database insert
+  // 5. Visitor Identification Cookie:
+  // Detect returning users vs unique visitors using persistent 1-year cookie
+  let visitorId = request.cookies.get('fs_vid')?.value
+  const isNewVisitor = !visitorId
+  if (!visitorId) {
+    visitorId = crypto.randomUUID()
+  }
+
   const referrer = request.headers.get('referer') || request.headers.get('referrer') || null
   const country = request.headers.get('cf-ipcountry') || request.headers.get('x-vercel-ip-country') || null
 
@@ -84,17 +90,18 @@ export async function GET(
     device: getDeviceType(userAgent),
     country,
     is_bot: isBot,
-  };
+    visitor_id: visitorId,
+  }
 
-  // Push to queued batch writer asynchronously
-  queueClick(clickData).catch(err => console.error('Click queue push error:', err))
+  // Real-time write to Supabase
+  await queueClick(clickData)
 
-  // 6. PostHog server capture with hashed IP (skip known bots to keep analytics pure)
+  // 6. PostHog server capture with hashed IP
   if (!isBot) {
     const posthog = getPostHogClient()
     if (posthog) {
       try {
-        const hashedDistinctId = hashIp(ip)
+        const hashedDistinctId = visitorId || hashIp(ip)
         posthog.capture({
           distinctId: hashedDistinctId,
           event: 'affiliate_click',
@@ -103,6 +110,7 @@ export async function GET(
             slug,
             device: clickData.device,
             country: clickData.country,
+            is_new_visitor: isNewVisitor,
           },
         })
       } catch (e) {
@@ -111,8 +119,17 @@ export async function GET(
     }
   }
 
-  // 7. Returns a 302 redirect to product.amazon_url immediately
-  return NextResponse.redirect(product.amazon_url, { status: 302 })
+  // 7. Returns 302 redirect with persistent visitor cookie
+  const response = NextResponse.redirect(product.amazon_url, { status: 302 })
+  response.cookies.set('fs_vid', visitorId, {
+    maxAge: 60 * 60 * 24 * 365, // 1 year
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  })
+
+  return response
 }
 
 

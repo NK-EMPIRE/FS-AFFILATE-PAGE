@@ -20,27 +20,31 @@ const bricolage = Bricolage_Grotesque({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://fs-gadgets.vercel.app'
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://gadgets.firstselfie.in'
   ),
   title: {
-    default: 'FirstSelfie — Creator Equipment & Studio Production Gear',
+    default: 'FirstSelfie Gadgets — Creator Equipment & Studio Production Gear',
     template: '%s | FirstSelfie Creator Gear',
   },
   description:
-    'Your First Selfie to Your First Crore. Official creator studio stack tested and recommended by FirstSelfie.',
+    'Your First Selfie to Your First Crore. Official creator studio stack, camera gear, wireless audio, and lighting tested and recommended by FirstSelfie.',
   keywords: [
     'FirstSelfie',
+    'FirstSelfie Gadgets',
+    'gadgets.firstselfie.in',
     'Creator Studio Setup',
-    'Best YouTube Camera',
+    'Best YouTube Camera 2026',
     'Sony ZV-E10',
-    'Wireless Microphone',
+    'Wireless Button Microphone',
+    'Hollyland Lark M2',
     'Godox Studio Lighting',
+    'Sigma 16mm Lens',
     'Creator Equipment India',
     'FirstSelfie Tamil',
     'Affiliate Storefront',
     'Content Creation Gear',
   ],
-  authors: [{ name: 'FirstSelfie', url: 'https://fs-gadgets.vercel.app' }],
+  authors: [{ name: 'FirstSelfie', url: 'https://gadgets.firstselfie.in' }],
   creator: 'FirstSelfie',
   publisher: 'FirstSelfie',
   icons: {
@@ -55,14 +59,14 @@ export const metadata: Metadata = {
     ],
   },
   alternates: {
-    canonical: 'https://fs-gadgets.vercel.app',
+    canonical: 'https://gadgets.firstselfie.in',
   },
   openGraph: {
-    title: 'FirstSelfie — Creator Equipment & Studio Gear',
+    title: 'FirstSelfie Gadgets — Creator Equipment & Studio Gear',
     description:
-      'Your First Selfie to Your First Crore. Discover handpicked cameras, lighting, and audio equipment.',
-    url: 'https://fs-gadgets.vercel.app',
-    siteName: 'FirstSelfie',
+      'Your First Selfie to Your First Crore. Discover handpicked cameras, lighting, and audio equipment for creators.',
+    url: 'https://gadgets.firstselfie.in',
+    siteName: 'FirstSelfie Gadgets',
     images: [
       {
         url: '/share-card.jpg',
@@ -76,7 +80,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FirstSelfie — Creator Equipment & Studio Gear',
+    title: 'FirstSelfie Gadgets — Creator Equipment & Studio Gear',
     description: 'Your First Selfie to Your First Crore. Creator studio equipment stack.',
     images: ['/share-card.jpg'],
   },

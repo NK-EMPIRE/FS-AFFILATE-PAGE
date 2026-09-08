@@ -334,24 +334,48 @@ export default function AnalyticsCharts({ clicks }: Props) {
 
       {/* Product Leaderboard & Traffic Source */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top 10 Equipment Leaderboard */}
-        <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg">
-          <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-[#FF6B00]" />
-            <span>Top Gear Recommendations by Clicks</span>
-          </h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topProductsData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#242424" />
-                <XAxis type="number" stroke="#71717a" fontSize={11} allowDecimals={false} />
-                <YAxis dataKey="name" type="category" width={115} stroke="#71717a" fontSize={10} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#333', borderRadius: '10px' }}
-                />
-                <Bar dataKey="count" fill="#FF6B00" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+        {/* Top Equipment Leaderboard */}
+        <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[#FF6B00]" />
+                <span>Top Gear Recommendations by Clicks</span>
+              </h3>
+              <span className="text-[11px] text-zinc-500 font-mono">Ranked by Volume</span>
+            </div>
+
+            {topProductsData.length === 0 ? (
+              <div className="py-12 text-center text-xs text-zinc-500">
+                No clicks recorded for this filter window.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {topProductsData.slice(0, 6).map((item, idx) => {
+                  const maxClicks = topProductsData[0]?.count || 1
+                  const pct = Math.round((item.count / maxClicks) * 100)
+                  return (
+                    <div key={idx} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-zinc-200 truncate max-w-[260px]">
+                          <span className="text-zinc-500 font-mono mr-1.5">#{idx + 1}</span>
+                          {item.name}
+                        </span>
+                        <span className="font-mono font-bold text-[#FF9A3C] shrink-0">
+                          {item.count} {item.count === 1 ? 'click' : 'clicks'}
+                        </span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-white/[0.04] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#FF6B00] to-[#FF9A3C] transition-all duration-500"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 
