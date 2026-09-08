@@ -75,7 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           </div>
 
-          <Link
+          <a
             href={`/go/${product.slug}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -84,7 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           >
             <span>View Deal</span>
             <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.2]" />
-          </Link>
+          </a>
         </div>
       </div>
     </article>

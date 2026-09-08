@@ -37,7 +37,11 @@ export async function GET(
     return NextResponse.redirect(new URL('/?not_found=invalid_slug', request.url))
   }
 
-  // 2. Rate-limits: max 20 requests/minute per IP+slug, secondary global slug limit
+  // 2. Ignore browser/Next.js prefetch requests to prevent phantom click counts
+  const purposeHeader = request.headers.get('purpose') || request.headers.get('x-purpose') || request.headers.get('sec-purpose')
+  const isPrefetch = purposeHeader?.toLowerCase().includes('prefetch') || purposeHeader?.toLowerCase().includes('preview')
+
+  // 3. Rate-limits: max 20 requests/minute per IP+slug, secondary global slug limit
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1'
   const rateLimitResult = await checkRateLimit(ip, slug)
 
@@ -45,7 +49,7 @@ export async function GET(
     return new NextResponse('Too many requests', { status: 429, headers: { 'Content-Type': 'text/plain' } })
   }
 
-  // 3. Lightweight Bot Detection:
+  // 4. Lightweight Bot Detection:
   // - Honeypot param check: bots scraping links often submit dummy hidden query parameters like ?hp=1 or ?bot_trap=...
   // - User-Agent heuristic analysis
   const searchParams = request.nextUrl.searchParams
@@ -56,11 +60,16 @@ export async function GET(
   const isBotUserAgent = !userAgent || BOT_UA_REGEX.test(userAgent)
   const isBot = hasHoneypotParam || isBotUserAgent
 
-  // 4. Look up product using Upstash Redis Cache Layer (5-min TTL)
+  // 5. Look up product using Upstash Redis Cache Layer (5-min TTL)
   const product = await getCachedProduct(slug)
 
   if (!product || !product.active) {
     return NextResponse.redirect(new URL('/?not_found=1', request.url))
+  }
+
+  // If request is purely a browser prefetch/preview, redirect immediately without recording click
+  if (isPrefetch) {
+    return NextResponse.redirect(product.amazon_url, { status: 302 })
   }
 
   // Defense in depth: validate amazon_url against expected pattern before redirecting

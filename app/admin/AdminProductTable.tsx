@@ -159,15 +159,16 @@ export default function AdminProductTable({ initialProducts }: Props) {
 
                 <td className="py-3 px-4 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-2">
-                    <Link
+                    <a
                       href={`/go/${product.slug}`}
                       target="_blank"
+                      rel="noopener noreferrer"
                       aria-label={`Test affiliate redirect link for ${product.title}`}
                       className="p-1.5 rounded bg-[#262626] text-zinc-400 hover:text-white hover:bg-zinc-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                       title="Test Affiliate Link"
                     >
                       <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                    </Link>
+                    </a>
                     <Link
                       href={`/admin/products/${product.id}/edit`}
                       aria-label={`Edit ${product.title}`}

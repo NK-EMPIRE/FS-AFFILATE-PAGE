@@ -14,7 +14,7 @@ export default async function AnalyticsPage() {
     if (supabase) {
       const { data: clicks } = await supabase
         .from('clicks')
-        .select('id, product_id, referrer, utm_source, utm_medium, utm_campaign, device, country, is_bot, clicked_at, products(title, slug, price, category)')
+        .select('id, product_id, referrer, utm_source, utm_medium, utm_campaign, device, country, is_bot, visitor_id, clicked_at, products(title, slug, price, category)')
         .order('clicked_at', { ascending: false })
 
       if (clicks) allClicks = clicks
@@ -33,6 +33,9 @@ export default async function AnalyticsPage() {
   const clicks7d = humanClicks.filter(c => new Date(c.clicked_at) >= sevenDaysAgo).length
   const clicks30d = humanClicks.filter(c => new Date(c.clicked_at) >= thirtyDaysAgo).length
   const clicksAllTime = humanClicks.length
+
+  // Calculate unique human visitors using the fs_vid cookie identifier
+  const uniqueVisitors = new Set(humanClicks.map(c => c.visitor_id || c.id)).size
 
   const mobileCount = humanClicks.filter(c => (c.device || '').toLowerCase() === 'mobile').length
   const mobilePct = humanClicks.length > 0 ? Math.round((mobileCount / humanClicks.length) * 100) : 0
@@ -69,20 +72,20 @@ export default async function AnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg">
           <div className="flex items-center justify-between text-xs text-zinc-400">
-            <span>Human Clicks (7d)</span>
-            <TrendingUp className="w-4 h-4 text-[#FF9A3C]" />
+            <span>Unique Visitors</span>
+            <Users className="w-4 h-4 text-[#FF9A3C]" />
           </div>
-          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-white">{clicks7d}</div>
-          <div className="mt-1 text-[11px] text-zinc-500">Verified human audience</div>
+          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-white">{uniqueVisitors}</div>
+          <div className="mt-1 text-[11px] text-zinc-500">Tracked via cookie ID</div>
         </div>
 
         <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg">
           <div className="flex items-center justify-between text-xs text-zinc-400">
-            <span>Human Clicks (30d)</span>
+            <span>Human Link Taps</span>
             <BarChart3 className="w-4 h-4 text-[#FF6B00]" />
           </div>
-          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-white">{clicks30d}</div>
-          <div className="mt-1 text-[11px] text-zinc-500">Last 30 days total</div>
+          <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-white">{clicksAllTime}</div>
+          <div className="mt-1 text-[11px] text-zinc-500">Real outbound 302 clicks</div>
         </div>
 
         <div className="rounded-2xl border border-[#2B2B2B] bg-[#141414] p-5 shadow-lg">

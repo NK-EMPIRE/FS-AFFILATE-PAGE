@@ -37,6 +37,7 @@ interface ClickRecord {
   country: string | null
   clicked_at: string
   is_bot?: boolean
+  visitor_id?: string | null
   products: {
     title: string
     slug: string

@@ -25,6 +25,7 @@ export default async function AdminDashboardPage() {
       const { count } = await supabase
         .from('clicks')
         .select('*', { count: 'exact', head: true })
+        .eq('is_bot', false)
 
       if (count) totalClicks = count
     }
